@@ -1,6 +1,13 @@
 import { Form } from '@adonisjs/inertia/react'
+import { usePage } from '@inertiajs/react'
+import { Data } from '@generated/data'
 
 export default function Login() {
+  const page = usePage<Data.SharedProps>()
+  const flashError = page.props.flash?.error as string | undefined
+  const flashSuccess = page.props.flash?.success as string | undefined
+  const verificationLink = page.props.flash?.verificationLink as string | undefined
+
   return (
     <div className="form-container">
       <div>
@@ -12,6 +19,16 @@ export default function Login() {
         <Form route="auth.login">
           {({ errors }) => (
             <>
+              {flashSuccess && <p className="text-green-600">{flashSuccess}</p>}
+              {flashError && <p className="text-red-500">{flashError}</p>}
+              {verificationLink && (
+                <p>
+                  <a className="text-blue-600 underline" href={verificationLink}>
+                    Verify your email
+                  </a>
+                </p>
+              )}
+
               <div>
                 <label htmlFor="email">Email</label>
                 <input
@@ -21,7 +38,7 @@ export default function Login() {
                   autoComplete="username"
                   data-invalid={errors.email ? 'true' : undefined}
                 />
-                {errors.email && <div>{errors.email}</div>}
+                {errors.email && <p className="text-red-500">{errors.email}</p>}
               </div>
 
               <div>
@@ -32,7 +49,7 @@ export default function Login() {
                   id="password"
                   autoComplete="current-password"
                 />
-                {errors.password ? <span>{errors.password}</span> : ''}
+                {errors.password && <p className="text-red-500">{errors.password}</p>}
               </div>
 
               <div>

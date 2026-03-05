@@ -34,5 +34,6 @@ router.post('/login', [AuthController, 'login'])
 
 router.get('/register', [AuthController, 'showRegister'])
 router.post('/register', [AuthController, 'register'])
+router.get('/email/verify/:id', [AuthController, 'verifyEmail']).as('auth.verify_email')
 
 router.post('/logout', [AuthController, 'logout']).use(middleware.auth())

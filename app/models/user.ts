@@ -37,6 +37,9 @@ export default class User extends compose(UserSchema, withAuthFinder(hash)) {
   @column()
   declare isActive: boolean | null
 
+  @column.dateTime({ columnName: 'email_verified_at' })
+  declare emailVerifiedAt: DateTime | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

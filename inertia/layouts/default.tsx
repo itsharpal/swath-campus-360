@@ -13,6 +13,10 @@ export default function Layout({ children }: { children: ReactElement<Data.Share
     toast.error(children.props.flash.error)
   }
 
+  if (children.props.flash.success) {
+    toast.success(children.props.flash.success)
+  }
+
   return (
     <>
       <header>

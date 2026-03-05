@@ -36,6 +36,12 @@ const routes = {
     tokens: [{"old":"/register","type":0,"val":"register","end":""}],
     types: placeholder as Registry['auth.register']['types'],
   },
+  'auth.verify_email': {
+    methods: ["GET","HEAD"],
+    pattern: '/email/verify/:id',
+    tokens: [{"old":"/email/verify/:id","type":0,"val":"email","end":""},{"old":"/email/verify/:id","type":0,"val":"verify","end":""},{"old":"/email/verify/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['auth.verify_email']['types'],
+  },
   'auth.logout': {
     methods: ["POST"],
     pattern: '/logout',

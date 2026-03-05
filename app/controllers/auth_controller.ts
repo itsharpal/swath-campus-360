@@ -2,8 +2,16 @@ import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import Role from '#models/role'
 import hash from '@adonisjs/core/services/hash'
+import router from '@adonisjs/core/services/router'
+import { DateTime } from 'luxon'
+import { appUrl } from '#config/app'
+import mail from '@adonisjs/mail/services/main'
 
 export default class AuthController {
+  private readonly allowedRoleNames = ['student', 'teacher']
+  private readonly scetEmailRegex = /^[a-z0-9]+(?:\.[a-z0-9]+)*@scet\.ac\.in$/i
+  private readonly verificationPurpose = 'email_verification'
+
   /*
   |-----------------------------------------
   | Show Login Page
@@ -40,6 +48,18 @@ export default class AuthController {
       return response.redirect().back()
     }
 
+    if (!user.emailVerifiedAt) {
+      const emailSent = await this.sendVerificationEmail(user)
+
+      session.flash('error', 'Please verify your email before logging in')
+      if (emailSent) {
+        session.flash('success', 'A fresh verification email has been sent to your inbox')
+      } else {
+        session.flash('error', 'Unable to send verification email. Please contact support')
+      }
+      return response.redirect().back()
+    }
+
     await auth.use('web').login(user)
 
     return response.redirect(this.redirectByRole(user.roleId))
@@ -51,7 +71,8 @@ export default class AuthController {
   |-----------------------------------------
   */
   async showRegister({ inertia }: HttpContext) {
-    const roles = await Role.query().select('id', 'name')
+    const allRoles = await Role.query().select('id', 'name')
+    const roles = allRoles.filter((role) => this.allowedRoleNames.includes(role.name.toLowerCase()))
 
     return inertia.render('auth/register', {
       roles,
@@ -64,7 +85,33 @@ export default class AuthController {
   |-----------------------------------------
   */
   async register({ request, response, session }: HttpContext) {
-    const data = request.only(['name', 'email', 'password', 'roleId', 'phone'])
+    const data = request.only([
+      'name',
+      'email',
+      'password',
+      'passwordConfirmation',
+      'roleId',
+      'phone',
+    ])
+
+    if (!this.scetEmailRegex.test(data.email)) {
+      session.flash('error', 'Only @scet.ac.in email addresses are allowed')
+      return response.redirect().back()
+    }
+
+    if (data.password !== data.passwordConfirmation) {
+      session.flash('error', 'Password and confirm password do not match')
+      return response.redirect().back()
+    }
+
+    const allowedRoles = await Role.query().whereIn('name', this.allowedRoleNames)
+    const allowedRoleIds = allowedRoles.map((role) => role.id)
+    const selectedRoleId = Number(data.roleId)
+
+    if (!allowedRoleIds.includes(selectedRoleId)) {
+      session.flash('error', 'Only student and teacher roles can register')
+      return response.redirect().back()
+    }
 
     const existingUser = await User.findBy('email', data.email)
 
@@ -73,15 +120,51 @@ export default class AuthController {
       return response.redirect().back()
     }
 
-    await User.create({
+    const user = await User.create({
       name: data.name,
       email: data.email,
       password: await hash.make(data.password),
-      roleId: data.roleId,
+      roleId: selectedRoleId,
       phone: data.phone,
       isActive: true,
     })
 
+    const emailSent = await this.sendVerificationEmail(user)
+    if (emailSent) {
+      session.flash(
+        'success',
+        'Registration successful. Please verify your email before logging in'
+      )
+    } else {
+      session.flash(
+        'error',
+        'Registration successful, but verification email could not be sent. Please contact support'
+      )
+    }
+
+    return response.redirect('/login')
+  }
+
+  async verifyEmail({ request, params, response, session }: HttpContext) {
+    if (!request.hasValidSignature(this.verificationPurpose)) {
+      session.flash('error', 'Verification link is invalid or expired')
+      return response.redirect('/login')
+    }
+
+    const userId = Number(params.id)
+    const user = await User.find(userId)
+
+    if (!user) {
+      session.flash('error', 'User not found')
+      return response.redirect('/login')
+    }
+
+    if (!user.emailVerifiedAt) {
+      user.emailVerifiedAt = DateTime.now()
+      await user.save()
+    }
+
+    session.flash('success', 'Email verified successfully. You can now login')
     return response.redirect('/login')
   }
 
@@ -116,6 +199,41 @@ export default class AuthController {
 
       default:
         return '/'
+    }
+  }
+
+  private createVerificationLink(userId: number) {
+    return router.makeSignedUrl(
+      'auth.verify_email',
+      { id: userId },
+      {
+        expiresIn: '1h',
+        purpose: this.verificationPurpose,
+        prefixUrl: appUrl,
+      }
+    )
+  }
+
+  private async sendVerificationEmail(user: User) {
+    const verificationLink = this.createVerificationLink(user.id)
+
+    try {
+      await mail.send((message) => {
+        message
+          .to(user.email)
+          .subject('Verify your email address - Swachh 360')
+          .html(
+            `<p>Hello ${user.name},</p><p>Please verify your email by clicking the link below:</p><p><a href="${verificationLink}">${verificationLink}</a></p><p>This link will expire in 1 hour.</p>`
+          )
+          .text(
+            `Hello ${user.name},\n\nPlease verify your email by opening this link:\n${verificationLink}\n\nThis link will expire in 1 hour.`
+          )
+      })
+
+      return true
+    } catch (error) {
+      console.error('Failed to send verification email', error)
+      return false
     }
   }
 }

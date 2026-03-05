@@ -62,6 +62,17 @@ export interface Registry {
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['register']>>>
     }
   }
+  'auth.verify_email': {
+    methods: ["GET","HEAD"]
+    pattern: '/email/verify/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['verifyEmail']>>>
+    }
+  }
   'auth.logout': {
     methods: ["POST"]
     pattern: '/logout'

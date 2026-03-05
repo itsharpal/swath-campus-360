@@ -160,12 +160,14 @@ export class RoleSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'id', 'isActive', 'name', 'password', 'phone', 'roleId', 'updatedAt'] as const
+  static $columns = ['createdAt', 'email', 'emailVerifiedAt', 'id', 'isActive', 'name', 'password', 'phone', 'roleId', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column()
   declare email: string
+  @column.dateTime()
+  declare emailVerifiedAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
   @column()
