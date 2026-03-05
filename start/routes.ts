@@ -7,6 +7,7 @@
 |
 */
 
+const AdminUsersController = () => import('#controllers/admin_users_controller')
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 const AuthController = () => import('#controllers/auth_controller')
@@ -37,3 +38,22 @@ router.post('/register', [AuthController, 'register'])
 router.get('/email/verify/:id', [AuthController, 'verifyEmail']).as('auth.verify_email')
 
 router.post('/logout', [AuthController, 'logout']).use(middleware.auth())
+
+router
+  .group(() => {
+    router.get('/users', [AdminUsersController, 'index']).as('admin.users.index')
+
+    router.get('/users/create', [AdminUsersController, 'create']).as('admin.users.create')
+
+    router.post('/users', [AdminUsersController, 'store']).as('admin.users.store')
+
+    router.get('/users/:id', [AdminUsersController, 'show']).as('admin.users.show')
+
+    router.get('/users/:id/edit', [AdminUsersController, 'edit']).as('admin.users.edit')
+
+    router.put('/users/:id', [AdminUsersController, 'update']).as('admin.users.update')
+
+    router.delete('/users/:id', [AdminUsersController, 'destroy']).as('admin.users.destroy')
+  })
+  .prefix('/admin')
+// .middleware(middleware.auth())

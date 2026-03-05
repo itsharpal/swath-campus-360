@@ -11,4 +11,15 @@ export interface ApiDefinition {
     verifyEmail: typeof routes['auth.verify_email']
     logout: typeof routes['auth.logout']
   }
+  admin: {
+    users: {
+      index: typeof routes['admin.users.index']
+      create: typeof routes['admin.users.create']
+      store: typeof routes['admin.users.store']
+      show: typeof routes['admin.users.show']
+      edit: typeof routes['admin.users.edit']
+      update: typeof routes['admin.users.update']
+      destroy: typeof routes['admin.users.destroy']
+    }
+  }
 }

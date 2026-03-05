@@ -8,6 +8,7 @@
     "node": ">=24.0.0"
   },
   "scripts": {
+    "inertia": "node ace inertia:types",
     "start": "node bin/server.js",
     "build": "node ace build",
     "dev": "node ace serve --hmr",
