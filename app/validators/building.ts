@@ -1,25 +1,37 @@
 import vine from '@vinejs/vine'
 
+/*
+|--------------------------------------------------------------------------
+| Create Building
+|--------------------------------------------------------------------------
+*/
+
 export const createBuildingValidator = vine.compile(
   vine.object({
-    name: vine.string().trim().minLength(3).maxLength(255),
+    name: vine.string().trim().minLength(2).maxLength(255),
 
     code: vine.string().trim().minLength(2).maxLength(20),
 
-    description: vine.string().trim().nullable().optional(),
+    description: vine.string().trim().optional(),
 
-    supervisorId: vine.number().positive().optional(),
+    supervisorId: vine.number().optional(),
   })
 )
 
+/*
+|--------------------------------------------------------------------------
+| Update Building
+|--------------------------------------------------------------------------
+*/
+
 export const updateBuildingValidator = vine.compile(
   vine.object({
-    name: vine.string().trim().minLength(3).maxLength(255).optional(),
+    name: vine.string().trim().minLength(2).maxLength(255),
 
-    code: vine.string().trim().minLength(2).maxLength(20).optional(),
+    code: vine.string().trim().minLength(2).maxLength(20),
 
-    description: vine.string().trim().nullable().optional(),
+    description: vine.string().trim().optional(),
 
-    supervisorId: vine.number().positive().nullable().optional(),
+    supervisorId: vine.number().optional(),
   })
 )

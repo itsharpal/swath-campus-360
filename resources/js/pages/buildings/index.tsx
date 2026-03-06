@@ -53,7 +53,13 @@ export default function Buildings({ buildings }: any) {
 
               <Button
                 variant="danger"
-                onClick={() => router.delete(`/buildings/${building.id}`)}
+                // onClick={() => router.delete(`/buildings/${building.id}`)}
+                onClick={() => {
+                  // @ts-ignore
+  if (confirm("Deactivate this building?")) {
+    router.delete(`/buildings/${building.id}`)
+  }
+}}
               >
                 Deactivate
               </Button>
