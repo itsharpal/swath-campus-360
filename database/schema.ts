@@ -47,181 +47,196 @@ export class ComplaintCategorySchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
-export class ComplaintSchema extends BaseModel {
-  static $columns = ['assignedAt', 'assignedSupervisorId', 'buildingId', 'categoryId', 'complaintCode', 'createdAt', 'description', 'escalationLevel', 'floorId', 'id', 'inProgressAt', 'isAnonymous', 'photoUrl', 'priority', 'reportedAt', 'reportedBy', 'resolutionPhotoUrl', 'resolutionRemark', 'resolutionTimeMinutes', 'resolvedAt', 'status', 'updatedAt', 'zoneId'] as const
-  $columns = ComplaintSchema.$columns
-  @column.dateTime()
-  declare assignedAt: DateTime | null
+export class ComplaintVoteSchema extends BaseModel {
+  static $columns = ['complaintId', 'createdAt', 'id', 'updatedAt', 'userId'] as const
+  $columns = ComplaintVoteSchema.$columns
   @column()
-  declare assignedSupervisorId: number | null
+  declare complaintId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+}
+
+export class ComplaintSchema extends BaseModel {
+  static $columns = ['id', 'complaintCode', 'zoneId', 'floorId', 'buildingId', 'reportedBy', 'isAnonymous', 'categoryId', 'description', 'photoUrl', 'status', 'priority', 'assignedSupervisorId', 'escalationLevel', 'reportedAt', 'assignedAt', 'inProgressAt', 'resolvedAt', 'resolutionTimeMinutes', 'resolutionPhotoUrl', 'resolutionRemark', 'createdAt', 'updatedAt'] as const
+  $columns = ComplaintSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare complaintCode: string
+  @column()
+  declare zoneId: number
+  @column()
+  declare floorId: number
   @column()
   declare buildingId: number
   @column()
-  declare categoryId: number
-  @column()
-  declare complaintCode: string
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
-  @column()
-  declare description: string | null
-  @column()
-  declare escalationLevel: number | null
-  @column()
-  declare floorId: number
-  @column({ isPrimary: true })
-  declare id: number
-  @column.dateTime()
-  declare inProgressAt: DateTime | null
+  declare reportedBy: number | null
   @column()
   declare isAnonymous: boolean | null
   @column()
+  declare categoryId: number
+  @column()
+  declare description: string | null
+  @column()
   declare photoUrl: string | null
   @column()
+  declare status: string | null
+  @column()
   declare priority: string
+  @column()
+  declare assignedSupervisorId: number | null
+  @column()
+  declare escalationLevel: number | null
   @column.dateTime()
   declare reportedAt: DateTime
+  @column.dateTime()
+  declare assignedAt: DateTime | null
+  @column.dateTime()
+  declare inProgressAt: DateTime | null
+  @column.dateTime()
+  declare resolvedAt: DateTime | null
   @column()
-  declare reportedBy: number | null
+  declare resolutionTimeMinutes: number | null
   @column()
   declare resolutionPhotoUrl: string | null
   @column()
   declare resolutionRemark: string | null
-  @column()
-  declare resolutionTimeMinutes: number | null
-  @column.dateTime()
-  declare resolvedAt: DateTime | null
-  @column()
-  declare status: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
-  @column()
-  declare zoneId: number
 }
 
 export class FloorSchema extends BaseModel {
-  static $columns = ['buildingId', 'createdAt', 'floorNumber', 'id', 'name', 'updatedAt'] as const
+  static $columns = ['id', 'buildingId', 'floorNumber', 'name', 'createdAt', 'updatedAt'] as const
   $columns = FloorSchema.$columns
-  @column()
-  declare buildingId: number
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
-  @column()
-  declare floorNumber: number
   @column({ isPrimary: true })
   declare id: number
   @column()
+  declare buildingId: number
+  @column()
+  declare floorNumber: number
+  @column()
   declare name: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
 
 export class JobCardSchema extends BaseModel {
-  static $columns = ['complaintId', 'completedAt', 'createdAt', 'id', 'proofPhotoUrl', 'remark', 'scheduledFor', 'status', 'supervisorId', 'type', 'updatedAt', 'zoneId'] as const
+  static $columns = ['id', 'complaintId', 'zoneId', 'supervisorId', 'type', 'status', 'scheduledFor', 'completedAt', 'proofPhotoUrl', 'remark', 'createdAt', 'updatedAt'] as const
   $columns = JobCardSchema.$columns
-  @column()
-  declare complaintId: number | null
-  @column.dateTime()
-  declare completedAt: DateTime | null
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
   @column()
-  declare proofPhotoUrl: string | null
+  declare complaintId: number | null
   @column()
-  declare remark: string | null
-  @column.dateTime()
-  declare scheduledFor: DateTime | null
-  @column()
-  declare status: string | null
+  declare zoneId: number
   @column()
   declare supervisorId: number
   @column()
   declare type: string
+  @column()
+  declare status: string | null
+  @column.dateTime()
+  declare scheduledFor: DateTime | null
+  @column.dateTime()
+  declare completedAt: DateTime | null
+  @column()
+  declare proofPhotoUrl: string | null
+  @column()
+  declare remark: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
-  @column()
-  declare zoneId: number
 }
 
 export class RoleSchema extends BaseModel {
-  static $columns = ['createdAt', 'description', 'id', 'name', 'updatedAt'] as const
+  static $columns = ['id', 'name', 'description', 'createdAt', 'updatedAt'] as const
   $columns = RoleSchema.$columns
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
-  @column()
-  declare description: string | null
   @column({ isPrimary: true })
   declare id: number
   @column()
   declare name: string
+  @column()
+  declare description: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'emailVerifiedAt', 'id', 'isActive', 'name', 'password', 'phone', 'roleId', 'updatedAt'] as const
+  static $columns = ['id', 'name', 'email', 'password', 'roleId', 'phone', 'isActive', 'emailVerifiedAt', 'createdAt', 'updatedAt'] as const
   $columns = UserSchema.$columns
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
-  @column()
-  declare email: string
-  @column.dateTime()
-  declare emailVerifiedAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
   @column()
-  declare isActive: boolean | null
-  @column()
   declare name: string
+  @column()
+  declare email: string
   @column({ serializeAs: null })
   declare password: string
   @column()
+  declare roleId: number
+  @column()
   declare phone: string | null
   @column()
-  declare roleId: number
+  declare isActive: boolean | null
+  @column.dateTime()
+  declare emailVerifiedAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
 
 export class ZoneTypeSchema extends BaseModel {
-  static $columns = ['createdAt', 'description', 'id', 'name', 'updatedAt'] as const
+  static $columns = ['id', 'name', 'description', 'createdAt', 'updatedAt'] as const
   $columns = ZoneTypeSchema.$columns
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
-  @column()
-  declare description: string | null
   @column({ isPrimary: true })
   declare id: number
   @column()
   declare name: string
+  @column()
+  declare description: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
 
 export class ZoneSchema extends BaseModel {
-  static $columns = ['buildingId', 'cleaningFrequencyHours', 'cleanlinessScore', 'createdAt', 'floorId', 'id', 'lastCleanedAt', 'name', 'qrCode', 'updatedAt', 'zoneTypeId'] as const
+  static $columns = ['id', 'floorId', 'buildingId', 'zoneTypeId', 'name', 'qrCode', 'cleaningFrequencyHours', 'cleanlinessScore', 'lastCleanedAt', 'createdAt', 'updatedAt'] as const
   $columns = ZoneSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare floorId: number
   @column()
   declare buildingId: number
   @column()
-  declare cleaningFrequencyHours: number | null
-  @column()
-  declare cleanlinessScore: string | null
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
-  @column()
-  declare floorId: number
-  @column({ isPrimary: true })
-  declare id: number
-  @column.dateTime()
-  declare lastCleanedAt: DateTime | null
+  declare zoneTypeId: number
   @column()
   declare name: string
   @column()
   declare qrCode: string | null
+  @column()
+  declare cleaningFrequencyHours: number | null
+  @column()
+  declare cleanlinessScore: string | null
+  @column.dateTime()
+  declare lastCleanedAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
-  @column()
-  declare zoneTypeId: number
 }

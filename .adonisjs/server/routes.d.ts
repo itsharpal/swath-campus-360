@@ -27,6 +27,7 @@ export type ScannedRoutes = {
     'complaints.track': { paramsTuple: [ParamValue]; params: {'code': ParamValue} }
     'complaints.show_resolve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.store': { paramsTuple?: []; params?: {} }
+    'complaints.upvote': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.mark_in_progress': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.resolve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -158,6 +159,7 @@ export type ScannedRoutes = {
     'auth.logout': { paramsTuple?: []; params?: {} }
     'admin.users.store': { paramsTuple?: []; params?: {} }
     'complaints.store': { paramsTuple?: []; params?: {} }
+    'complaints.upvote': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'buildings.store': { paramsTuple?: []; params?: {} }
     'floors.store': { paramsTuple: [ParamValue]; params: {'buildingId': ParamValue} }
     'zones.store': { paramsTuple: [ParamValue]; params: {'floorId': ParamValue} }

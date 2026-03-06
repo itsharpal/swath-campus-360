@@ -59,10 +59,18 @@ export default class ComplaintsController {
   /**
    * GET /complaints
    */
-  async index({ inertia }: HttpContext) {
-    const complaintRecords = await this.complaintService.list()
+  async index({ inertia, auth }: HttpContext) {
+    const complaintRecords = await this.complaintService.list({
+      rankPublic: true,
+      viewerUserId: auth.user?.id,
+    })
 
-    const complaints = complaintRecords.map((complaint) => complaint.serialize())
+    const complaints = complaintRecords.map((complaint) => ({
+      ...complaint.serialize(),
+      upvoteCount: Number(complaint.$extras.upvoteCount ?? 0),
+      isTeacherPriority: Boolean(complaint.$extras.isTeacherPriority),
+      hasUpvoted: Boolean(complaint.$extras.hasUpvoted),
+    }))
 
     return inertia.render(
       'complaints/index' as any,
@@ -136,9 +144,15 @@ export default class ComplaintsController {
   async my({ auth, inertia }: HttpContext) {
     const complaintRecords = await this.complaintService.list({
       userId: auth.user!.id,
+      viewerUserId: auth.user!.id,
     })
 
-    const complaints = complaintRecords.map((complaint) => complaint.serialize())
+    const complaints = complaintRecords.map((complaint) => ({
+      ...complaint.serialize(),
+      upvoteCount: Number(complaint.$extras.upvoteCount ?? 0),
+      isTeacherPriority: Boolean(complaint.$extras.isTeacherPriority),
+      hasUpvoted: Boolean(complaint.$extras.hasUpvoted),
+    }))
 
     return inertia.render(
       'complaints/my' as any,
@@ -201,6 +215,16 @@ export default class ComplaintsController {
 
     await this.complaintService.resolve(Number(params.id), payloadWithPhoto)
 
+    return response.redirect().back()
+  }
+
+  /**
+   * POST /complaints/:id/upvote
+   */
+  async upvote({ params, auth, response, session }: HttpContext) {
+    await this.complaintService.upvote(Number(params.id), Number(auth.user!.id))
+
+    session.flash('success', 'Upvote recorded')
     return response.redirect().back()
   }
 }

@@ -260,6 +260,17 @@ export interface Registry {
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['store']>>>
     }
   }
+  'complaints.upvote': {
+    methods: ["POST"]
+    pattern: '/complaints/:id/upvote'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['upvote']>>>
+    }
+  }
   'complaints.show': {
     methods: ["GET","HEAD"]
     pattern: '/complaints/:id'

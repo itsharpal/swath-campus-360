@@ -2,10 +2,11 @@ import { UserSchema } from '#database/schema'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
-import { belongsTo, column } from '@adonisjs/lucid/orm'
+import { belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Role from './role.js'
+import ComplaintVote from './complaint_vote.js'
 
 export default class User extends compose(UserSchema, withAuthFinder(hash)) {
   get initials() {
@@ -48,4 +49,7 @@ export default class User extends compose(UserSchema, withAuthFinder(hash)) {
 
   @belongsTo(() => Role)
   declare role: BelongsTo<typeof Role>
+
+  @hasMany(() => ComplaintVote)
+  declare complaintVotes: HasMany<typeof ComplaintVote>
 }

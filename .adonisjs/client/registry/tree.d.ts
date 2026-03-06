@@ -36,6 +36,7 @@ export interface ApiDefinition {
     track: typeof routes['complaints.track']
     showResolve: typeof routes['complaints.show_resolve']
     store: typeof routes['complaints.store']
+    upvote: typeof routes['complaints.upvote']
     show: typeof routes['complaints.show']
     markInProgress: typeof routes['complaints.mark_in_progress']
     resolve: typeof routes['complaints.resolve']

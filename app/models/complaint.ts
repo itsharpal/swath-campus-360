@@ -14,6 +14,7 @@ import Floor from './floor.js'
 import User from './user.js'
 import ComplaintCategory from './complaint_category.js'
 import JobCard from './job_card.js'
+import ComplaintVote from './complaint_vote.js'
 import { DateTime } from 'luxon'
 
 export default class Complaint extends BaseModel {
@@ -109,6 +110,9 @@ export default class Complaint extends BaseModel {
 
   @hasMany(() => JobCard)
   declare jobCards: HasMany<typeof JobCard>
+
+  @hasMany(() => ComplaintVote)
+  declare votes: HasMany<typeof ComplaintVote>
 
   @beforeCreate()
   static generateComplaintCode(complaint: Complaint) {

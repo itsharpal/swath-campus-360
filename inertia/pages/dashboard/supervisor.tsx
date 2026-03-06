@@ -1,4 +1,6 @@
 import { Link } from '@adonisjs/inertia/react'
+import CampusHeatmap from '~/components/dashboard/campus_heatmap'
+import type { ComplaintHeatmap } from '~/components/dashboard/campus_heatmap'
 
 interface Stats {
   totalJobs: number
@@ -17,6 +19,7 @@ interface Job {
 interface Props {
   stats: Stats
   recentJobs: Job[]
+  complaintHeatmap: ComplaintHeatmap
 }
 
 const statusStyle: Record<string, { bg: string; color: string; border: string }> = {
@@ -25,7 +28,7 @@ const statusStyle: Record<string, { bg: string; color: string; border: string }>
   completed: { bg: '#d1fae5', color: '#047857', border: '#a7f3d0' },
 }
 
-export default function SupervisorDashboard({ stats, recentJobs }: Props) {
+export default function SupervisorDashboard({ stats, recentJobs, complaintHeatmap }: Props) {
   const statCards = [
     {
       label: 'Total Jobs',
@@ -159,6 +162,8 @@ export default function SupervisorDashboard({ stats, recentJobs }: Props) {
             </div>
           ))}
         </div>
+
+        <CampusHeatmap complaintHeatmap={complaintHeatmap} />
 
         {/* Recent Jobs Table */}
         <div style={{

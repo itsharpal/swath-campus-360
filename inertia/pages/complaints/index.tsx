@@ -1,4 +1,6 @@
 import { Link } from '@adonisjs/inertia/react'
+import { router, usePage } from '@inertiajs/react'
+import { useMemo, useState } from 'react'
 
 interface Complaint {
   id: number
@@ -8,10 +10,20 @@ interface Complaint {
   createdAt: string
   zone?: { name: string }
   category?: { name: string }
+  upvoteCount: number
+  isTeacherPriority: boolean
+  hasUpvoted: boolean
 }
 
 interface Props {
   complaints: Complaint[]
+}
+
+interface SharedPageProps {
+  user?: {
+    id: number
+    name: string
+  }
 }
 
 const statusStyle: Record<string, { bg: string; color: string; border: string }> = {
@@ -29,9 +41,32 @@ const priorityStyle: Record<string, { bg: string; color: string }> = {
 }
 
 export default function ComplaintsIndex({ complaints }: Props) {
+  const { props } = usePage<SharedPageProps>()
+  const [pendingUpvoteId, setPendingUpvoteId] = useState<number | null>(null)
+
   const open       = complaints.filter((c) => c.status === 'open').length
-  const inProgress = complaints.filter((c) => c.status === 'in_progress').length
-  const resolved   = complaints.filter((c) => c.status === 'resolved').length
+  const teacherPriorityCount = complaints.filter((c) => c.isTeacherPriority).length
+  const totalUpvotes = useMemo(
+    () => complaints.reduce((sum, complaint) => sum + Number(complaint.upvoteCount ?? 0), 0),
+    [complaints]
+  )
+
+  function handleUpvote(complaintId: number) {
+    if (!props.user) {
+      router.visit('/login')
+      return
+    }
+
+    setPendingUpvoteId(complaintId)
+    router.post(
+      `/complaints/${complaintId}/upvote`,
+      {},
+      {
+        preserveScroll: true,
+        onFinish: () => setPendingUpvoteId(null),
+      }
+    )
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #f0fdf4 100%)', fontFamily: "'DM Sans','Segoe UI',sans-serif", padding: '2.5rem 2rem', position: 'relative', overflow: 'hidden' }}>
@@ -63,8 +98,8 @@ export default function ComplaintsIndex({ complaints }: Props) {
           {[
             { label: 'Total', value: complaints.length, accent: '#16a34a', bg: 'rgba(22,163,74,0.08)' },
             { label: 'Open', value: open, accent: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
-            { label: 'In Progress', value: inProgress, accent: '#3b82f6', bg: 'rgba(59,130,246,0.08)' },
-            { label: 'Resolved', value: resolved, accent: '#10b981', bg: 'rgba(16,185,129,0.08)' },
+            { label: 'Teacher Priority', value: teacherPriorityCount, accent: '#7c3aed', bg: 'rgba(124,58,237,0.08)' },
+            { label: 'Total Upvotes', value: totalUpvotes, accent: '#2563eb', bg: 'rgba(37,99,235,0.08)' },
           ].map((s) => (
             <div key={s.label} style={{ background: '#fff', borderRadius: '14px', padding: '1.1rem 1.4rem', boxShadow: '0 1px 8px rgba(0,0,0,0.06)', border: '1px solid rgba(22,163,74,0.1)', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.accent, flexShrink: 0 }}>
@@ -91,7 +126,7 @@ export default function ComplaintsIndex({ complaints }: Props) {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {['Code', 'Zone', 'Category', 'Status', 'Priority', ''].map((h) => (
+                  {['Code', 'Zone', 'Category', 'Status', 'Priority', 'Votes', ''].map((h) => (
                     <th key={h} style={{ padding: '0.85rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{h}</th>
                   ))}
                 </tr>
@@ -115,7 +150,38 @@ export default function ComplaintsIndex({ complaints }: Props) {
                         <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: '20px', textTransform: 'capitalize', background: ss.bg, color: ss.color, border: `1px solid ${ss.border}` }}>{c.status.replace('_', ' ')}</span>
                       </td>
                       <td style={{ padding: '1rem 1.5rem' }}>
-                        <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: '20px', textTransform: 'capitalize', background: ps.bg, color: ps.color }}>{c.priority}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: '20px', textTransform: 'capitalize', background: ps.bg, color: ps.color }}>{c.priority}</span>
+                          {c.isTeacherPriority && (
+                            <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '3px 8px', borderRadius: '999px', background: 'rgba(124,58,237,0.12)', color: '#6d28d9' }}>
+                              Teacher
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <button
+                          type="button"
+                          disabled={pendingUpvoteId === c.id || c.hasUpvoted}
+                          onClick={() => handleUpvote(c.id)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '5px 10px',
+                            borderRadius: '8px',
+                            border: c.hasUpvoted ? '1px solid #bfdbfe' : '1px solid #93c5fd',
+                            background: c.hasUpvoted ? '#eff6ff' : '#dbeafe',
+                            color: c.hasUpvoted ? '#1d4ed8' : '#1e40af',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            cursor: pendingUpvoteId === c.id || c.hasUpvoted ? 'not-allowed' : 'pointer',
+                            opacity: pendingUpvoteId === c.id ? 0.7 : 1,
+                          }}
+                        >
+                          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M7 10l5-7 5 7M12 3v18" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          {c.upvoteCount}
+                        </button>
                       </td>
                       <td style={{ padding: '1rem 1.5rem' }}>
                         <Link href={`/complaints/${c.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', fontWeight: 600, color: '#16a34a', textDecoration: 'none', padding: '5px 10px', borderRadius: '7px', border: '1px solid #bbf7d0', background: '#f0fdf4' }}>

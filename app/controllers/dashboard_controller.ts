@@ -16,6 +16,7 @@ export default class DashboardController {
     return inertia.render('dashboard/admin' as any, {
       stats: dashboard.stats,
       recentComplaints: dashboard.recentComplaints,
+      complaintHeatmap: dashboard.complaintHeatmap,
     })
   }
 
@@ -30,6 +31,7 @@ export default class DashboardController {
     return inertia.render('dashboard/supervisor' as any, {
       stats: dashboard.stats,
       recentJobs: dashboard.recentJobs,
+      complaintHeatmap: dashboard.complaintHeatmap,
     })
   }
 }

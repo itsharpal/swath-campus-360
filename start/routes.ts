@@ -84,6 +84,8 @@ router.get('/complaints/:id/resolve', [ComplaintsController, 'showResolve']).use
 
 router.post('/complaints', [ComplaintsController, 'store'])
 
+router.post('/complaints/:id/upvote', [ComplaintsController, 'upvote']).use(middleware.auth())
+
 router.get('/complaints/:id', [ComplaintsController, 'show'])
 
 router

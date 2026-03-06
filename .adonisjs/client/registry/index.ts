@@ -144,6 +144,12 @@ const routes = {
     tokens: [{"old":"/complaints","type":0,"val":"complaints","end":""}],
     types: placeholder as Registry['complaints.store']['types'],
   },
+  'complaints.upvote': {
+    methods: ["POST"],
+    pattern: '/complaints/:id/upvote',
+    tokens: [{"old":"/complaints/:id/upvote","type":0,"val":"complaints","end":""},{"old":"/complaints/:id/upvote","type":1,"val":"id","end":""},{"old":"/complaints/:id/upvote","type":0,"val":"upvote","end":""}],
+    types: placeholder as Registry['complaints.upvote']['types'],
+  },
   'complaints.show': {
     methods: ["GET","HEAD"],
     pattern: '/complaints/:id',
