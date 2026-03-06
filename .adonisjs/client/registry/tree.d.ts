@@ -31,7 +31,9 @@ export interface ApiDefinition {
   }
   zones: {
     index: typeof routes['zones.index']
+    create: typeof routes['zones.create']
     store: typeof routes['zones.store']
+    edit: typeof routes['zones.edit']
     show: typeof routes['zones.show']
     update: typeof routes['zones.update']
     destroy: typeof routes['zones.destroy']

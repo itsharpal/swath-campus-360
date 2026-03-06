@@ -26,7 +26,9 @@ export type ScannedRoutes = {
     'floors.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'floors.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.index': { paramsTuple: [ParamValue]; params: {'floorId': ParamValue} }
+    'zones.create': { paramsTuple: [ParamValue]; params: {'floorId': ParamValue} }
     'zones.store': { paramsTuple: [ParamValue]; params: {'floorId': ParamValue} }
+    'zones.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -72,6 +74,8 @@ export type ScannedRoutes = {
     'floors.create': { paramsTuple: [ParamValue]; params: {'buildingId': ParamValue} }
     'floors.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.index': { paramsTuple: [ParamValue]; params: {'floorId': ParamValue} }
+    'zones.create': { paramsTuple: [ParamValue]; params: {'floorId': ParamValue} }
+    'zones.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.generate_qr': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.resolve_by_qr': { paramsTuple: [ParamValue]; params: {'qr': ParamValue} }
@@ -110,6 +114,8 @@ export type ScannedRoutes = {
     'floors.create': { paramsTuple: [ParamValue]; params: {'buildingId': ParamValue} }
     'floors.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.index': { paramsTuple: [ParamValue]; params: {'floorId': ParamValue} }
+    'zones.create': { paramsTuple: [ParamValue]; params: {'floorId': ParamValue} }
+    'zones.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.generate_qr': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'zones.resolve_by_qr': { paramsTuple: [ParamValue]; params: {'qr': ParamValue} }

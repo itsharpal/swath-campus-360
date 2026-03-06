@@ -1,23 +1,29 @@
 import Zone from '#models/zone'
 import Floor from '#models/floor'
-//@ts-ignore: no type declarations for 'qrcode'
-import QRCode from 'qrcode'
+import { randomUUID } from 'node:crypto'
+
+interface ZonePayload {
+  name: string
+  zoneTypeId: number
+  cleaningFrequencyHours?: number
+}
 
 export default class ZoneService {
-  async getZonesByFloor(floorId: number) {
-    return Zone.query().where('floor_id', floorId).preload('zoneType')
+  async listZones(floorId: number) {
+    return Zone.query().where('floor_id', floorId).preload('zoneType').orderBy('created_at', 'desc')
   }
 
-  async createZone(floorId: number, data: any) {
+  async createZone(floorId: number, data: ZonePayload) {
     const floor = await Floor.findOrFail(floorId)
 
-    const zone = await Zone.create({
-      ...data,
-      floorId: floorId,
+    return Zone.create({
+      floorId: floor.id,
       buildingId: floor.buildingId,
+      name: data.name,
+      zoneTypeId: data.zoneTypeId,
+      cleaningFrequencyHours: data.cleaningFrequencyHours ?? 4,
+      qrCode: randomUUID(),
     })
-
-    return zone
   }
 
   async getZone(id: number) {
@@ -29,10 +35,14 @@ export default class ZoneService {
       .firstOrFail()
   }
 
-  async updateZone(id: number, data: any) {
+  async updateZone(id: number, data: ZonePayload) {
     const zone = await Zone.findOrFail(id)
 
-    zone.merge(data)
+    zone.merge({
+      name: data.name,
+      zoneTypeId: data.zoneTypeId,
+      cleaningFrequencyHours: data.cleaningFrequencyHours,
+    })
 
     await zone.save()
 
@@ -44,27 +54,26 @@ export default class ZoneService {
 
     await zone.delete()
 
-    return { message: 'Zone deleted' }
-  }
-
-  async generateQr(zoneId: number) {
-    const zone = await Zone.findOrFail(zoneId)
-
-    const qrData = `ZONE-${zone.id}`
-
-    const qr = await QRCode.toDataURL(qrData)
-
-    zone.qrCode = qrData
-
-    await zone.save()
-
-    return {
-      qr,
-      zone,
-    }
+    return true
   }
 
   async resolveZoneByQr(qr: string) {
-    return Zone.query().where('qr_code', qr).preload('building').preload('floor').firstOrFail()
+    return Zone.query()
+      .where('qr_code', qr)
+      .preload('floor')
+      .preload('building')
+      .preload('zoneType')
+      .firstOrFail()
+  }
+
+  async generateQr(id: number) {
+    const zone = await Zone.findOrFail(id)
+
+    if (!zone.qrCode) {
+      zone.qrCode = randomUUID()
+      await zone.save()
+    }
+
+    return zone.qrCode
   }
 }

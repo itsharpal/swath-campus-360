@@ -99,10 +99,10 @@ export interface Registry {
     methods: ["POST"]
     pattern: '/buildings'
     types: {
-      body: {}
+      body: ExtractBody<InferInput<(typeof import('#validators/building').createBuildingValidator)>>
       paramsTuple: []
       params: {}
-      query: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/building').createBuildingValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['store']>>>
     }
   }
@@ -132,10 +132,10 @@ export interface Registry {
     methods: ["PUT"]
     pattern: '/buildings/:id'
     types: {
-      body: {}
+      body: ExtractBody<InferInput<(typeof import('#validators/building').updateBuildingValidator)>>
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
-      query: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/building').updateBuildingValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['update']>>>
     }
   }
@@ -249,15 +249,37 @@ export interface Registry {
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['index']>>>
     }
   }
-  'zones.store': {
-    methods: ["POST"]
-    pattern: '/floors/:floorId/zones'
+  'zones.create': {
+    methods: ["GET","HEAD"]
+    pattern: '/floors/:floorId/zones/create'
     types: {
       body: {}
       paramsTuple: [ParamValue]
       params: { floorId: ParamValue }
       query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['create']>>>
+    }
+  }
+  'zones.store': {
+    methods: ["POST"]
+    pattern: '/floors/:floorId/zones'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/zone').createZoneValidator)>>
+      paramsTuple: [ParamValue]
+      params: { floorId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/zone').createZoneValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['store']>>>
+    }
+  }
+  'zones.edit': {
+    methods: ["GET","HEAD"]
+    pattern: '/zones/:id/edit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['edit']>>>
     }
   }
   'zones.show': {
@@ -275,10 +297,10 @@ export interface Registry {
     methods: ["PUT"]
     pattern: '/zones/:id'
     types: {
-      body: {}
+      body: ExtractBody<InferInput<(typeof import('#validators/zone').updateZoneValidator)>>
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
-      query: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/zone').updateZoneValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['update']>>>
     }
   }

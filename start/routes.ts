@@ -87,7 +87,9 @@ router.group(() => {
 
 router.group(() => {
   router.get('/floors/:floorId/zones', [ZonesController, 'index'])
+  router.get('/floors/:floorId/zones/create', [ZonesController, 'create'])
   router.post('/floors/:floorId/zones', [ZonesController, 'store'])
+  router.get('/zones/:id/edit', [ZonesController, 'edit'])
 })
 
 router.group(() => {

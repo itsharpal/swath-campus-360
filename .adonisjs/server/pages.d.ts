@@ -26,5 +26,9 @@ declare module '@adonisjs/inertia/types' {
     'floors/create': ExtractProps<(typeof import('../../inertia/pages/floors/create.tsx'))['default']>
     'floors/edit': ExtractProps<(typeof import('../../inertia/pages/floors/edit.tsx'))['default']>
     'home': ExtractProps<(typeof import('../../inertia/pages/home.tsx'))['default']>
+    'zones/create': ExtractProps<(typeof import('../../inertia/pages/zones/create.tsx'))['default']>
+    'zones/edit': ExtractProps<(typeof import('../../inertia/pages/zones/edit.tsx'))['default']>
+    'zones/index': ExtractProps<(typeof import('../../inertia/pages/zones/index.tsx'))['default']>
+    'zones/show': ExtractProps<(typeof import('../../inertia/pages/zones/show.tsx'))['default']>
   }
 }

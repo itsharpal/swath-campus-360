@@ -138,11 +138,23 @@ const routes = {
     tokens: [{"old":"/floors/:floorId/zones","type":0,"val":"floors","end":""},{"old":"/floors/:floorId/zones","type":1,"val":"floorId","end":""},{"old":"/floors/:floorId/zones","type":0,"val":"zones","end":""}],
     types: placeholder as Registry['zones.index']['types'],
   },
+  'zones.create': {
+    methods: ["GET","HEAD"],
+    pattern: '/floors/:floorId/zones/create',
+    tokens: [{"old":"/floors/:floorId/zones/create","type":0,"val":"floors","end":""},{"old":"/floors/:floorId/zones/create","type":1,"val":"floorId","end":""},{"old":"/floors/:floorId/zones/create","type":0,"val":"zones","end":""},{"old":"/floors/:floorId/zones/create","type":0,"val":"create","end":""}],
+    types: placeholder as Registry['zones.create']['types'],
+  },
   'zones.store': {
     methods: ["POST"],
     pattern: '/floors/:floorId/zones',
     tokens: [{"old":"/floors/:floorId/zones","type":0,"val":"floors","end":""},{"old":"/floors/:floorId/zones","type":1,"val":"floorId","end":""},{"old":"/floors/:floorId/zones","type":0,"val":"zones","end":""}],
     types: placeholder as Registry['zones.store']['types'],
+  },
+  'zones.edit': {
+    methods: ["GET","HEAD"],
+    pattern: '/zones/:id/edit',
+    tokens: [{"old":"/zones/:id/edit","type":0,"val":"zones","end":""},{"old":"/zones/:id/edit","type":1,"val":"id","end":""},{"old":"/zones/:id/edit","type":0,"val":"edit","end":""}],
+    types: placeholder as Registry['zones.edit']['types'],
   },
   'zones.show': {
     methods: ["GET","HEAD"],
