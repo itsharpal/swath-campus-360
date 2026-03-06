@@ -22,4 +22,15 @@ export interface ApiDefinition {
       destroy: typeof routes['admin.users.destroy']
     }
   }
+  complaints: {
+    index: typeof routes['complaints.index']
+    create: typeof routes['complaints.create']
+    my: typeof routes['complaints.my']
+    track: typeof routes['complaints.track']
+    showResolve: typeof routes['complaints.show_resolve']
+    store: typeof routes['complaints.store']
+    show: typeof routes['complaints.show']
+    markInProgress: typeof routes['complaints.mark_in_progress']
+    resolve: typeof routes['complaints.resolve']
+  }
 }

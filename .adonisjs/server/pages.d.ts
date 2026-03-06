@@ -20,6 +20,12 @@ declare module '@adonisjs/inertia/types' {
     'auth/login': ExtractProps<(typeof import('../../inertia/pages/auth/login.tsx'))['default']>
     'auth/register': ExtractProps<(typeof import('../../inertia/pages/auth/register.tsx'))['default']>
     'auth/signup': ExtractProps<(typeof import('../../inertia/pages/auth/signup.tsx'))['default']>
+    'complaints/create': ExtractProps<(typeof import('../../inertia/pages/complaints/create.tsx'))['default']>
+    'complaints/index': ExtractProps<(typeof import('../../inertia/pages/complaints/index.tsx'))['default']>
+    'complaints/my': ExtractProps<(typeof import('../../inertia/pages/complaints/my.tsx'))['default']>
+    'complaints/resolve': ExtractProps<(typeof import('../../inertia/pages/complaints/resolve.tsx'))['default']>
+    'complaints/show': ExtractProps<(typeof import('../../inertia/pages/complaints/show.tsx'))['default']>
+    'complaints/track': ExtractProps<(typeof import('../../inertia/pages/complaints/track.tsx'))['default']>
     'errors/not_found': ExtractProps<(typeof import('../../inertia/pages/errors/not_found.tsx'))['default']>
     'errors/server_error': ExtractProps<(typeof import('../../inertia/pages/errors/server_error.tsx'))['default']>
     'home': ExtractProps<(typeof import('../../inertia/pages/home.tsx'))['default']>

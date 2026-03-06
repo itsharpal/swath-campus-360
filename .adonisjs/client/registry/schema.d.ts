@@ -161,4 +161,103 @@ export interface Registry {
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_users_controller').default['destroy']>>>
     }
   }
+  'complaints.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/complaints'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['index']>>>
+    }
+  }
+  'complaints.create': {
+    methods: ["GET","HEAD"]
+    pattern: '/complaints/create'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['create']>>>
+    }
+  }
+  'complaints.my': {
+    methods: ["GET","HEAD"]
+    pattern: '/complaints/my'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['my']>>>
+    }
+  }
+  'complaints.track': {
+    methods: ["GET","HEAD"]
+    pattern: '/complaints/track/:code'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { code: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['track']>>>
+    }
+  }
+  'complaints.show_resolve': {
+    methods: ["GET","HEAD"]
+    pattern: '/complaints/:id/resolve'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['showResolve']>>>
+    }
+  }
+  'complaints.store': {
+    methods: ["POST"]
+    pattern: '/complaints'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/complaint').createComplaintValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/complaint').createComplaintValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['store']>>>
+    }
+  }
+  'complaints.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/complaints/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['show']>>>
+    }
+  }
+  'complaints.mark_in_progress': {
+    methods: ["PUT"]
+    pattern: '/complaints/:id/status'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/complaint').updateStatusValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/complaint').updateStatusValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['markInProgress']>>>
+    }
+  }
+  'complaints.resolve': {
+    methods: ["PUT"]
+    pattern: '/complaints/:id/resolve'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/complaint').resolveComplaintValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/complaint').resolveComplaintValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['resolve']>>>
+    }
+  }
 }

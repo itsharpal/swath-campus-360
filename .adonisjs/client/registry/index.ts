@@ -90,6 +90,60 @@ const routes = {
     tokens: [{"old":"/admin/users/:id","type":0,"val":"admin","end":""},{"old":"/admin/users/:id","type":0,"val":"users","end":""},{"old":"/admin/users/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['admin.users.destroy']['types'],
   },
+  'complaints.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/complaints',
+    tokens: [{"old":"/complaints","type":0,"val":"complaints","end":""}],
+    types: placeholder as Registry['complaints.index']['types'],
+  },
+  'complaints.create': {
+    methods: ["GET","HEAD"],
+    pattern: '/complaints/create',
+    tokens: [{"old":"/complaints/create","type":0,"val":"complaints","end":""},{"old":"/complaints/create","type":0,"val":"create","end":""}],
+    types: placeholder as Registry['complaints.create']['types'],
+  },
+  'complaints.my': {
+    methods: ["GET","HEAD"],
+    pattern: '/complaints/my',
+    tokens: [{"old":"/complaints/my","type":0,"val":"complaints","end":""},{"old":"/complaints/my","type":0,"val":"my","end":""}],
+    types: placeholder as Registry['complaints.my']['types'],
+  },
+  'complaints.track': {
+    methods: ["GET","HEAD"],
+    pattern: '/complaints/track/:code',
+    tokens: [{"old":"/complaints/track/:code","type":0,"val":"complaints","end":""},{"old":"/complaints/track/:code","type":0,"val":"track","end":""},{"old":"/complaints/track/:code","type":1,"val":"code","end":""}],
+    types: placeholder as Registry['complaints.track']['types'],
+  },
+  'complaints.show_resolve': {
+    methods: ["GET","HEAD"],
+    pattern: '/complaints/:id/resolve',
+    tokens: [{"old":"/complaints/:id/resolve","type":0,"val":"complaints","end":""},{"old":"/complaints/:id/resolve","type":1,"val":"id","end":""},{"old":"/complaints/:id/resolve","type":0,"val":"resolve","end":""}],
+    types: placeholder as Registry['complaints.show_resolve']['types'],
+  },
+  'complaints.store': {
+    methods: ["POST"],
+    pattern: '/complaints',
+    tokens: [{"old":"/complaints","type":0,"val":"complaints","end":""}],
+    types: placeholder as Registry['complaints.store']['types'],
+  },
+  'complaints.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/complaints/:id',
+    tokens: [{"old":"/complaints/:id","type":0,"val":"complaints","end":""},{"old":"/complaints/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['complaints.show']['types'],
+  },
+  'complaints.mark_in_progress': {
+    methods: ["PUT"],
+    pattern: '/complaints/:id/status',
+    tokens: [{"old":"/complaints/:id/status","type":0,"val":"complaints","end":""},{"old":"/complaints/:id/status","type":1,"val":"id","end":""},{"old":"/complaints/:id/status","type":0,"val":"status","end":""}],
+    types: placeholder as Registry['complaints.mark_in_progress']['types'],
+  },
+  'complaints.resolve': {
+    methods: ["PUT"],
+    pattern: '/complaints/:id/resolve',
+    tokens: [{"old":"/complaints/:id/resolve","type":0,"val":"complaints","end":""},{"old":"/complaints/:id/resolve","type":1,"val":"id","end":""},{"old":"/complaints/:id/resolve","type":0,"val":"resolve","end":""}],
+    types: placeholder as Registry['complaints.resolve']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }
