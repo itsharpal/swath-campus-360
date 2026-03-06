@@ -201,6 +201,15 @@ export default class ComplaintsController {
 
     await this.complaintService.resolve(Number(params.id), payloadWithPhoto)
 
+    // If the request is an XHR/Inertia request, return JSON so fetch/ajax callers
+    // don't receive a redirect (which can cause redirect loops and 'too many redirects').
+    const isXhr = String(request.header('x-requested-with') || '').toLowerCase() === 'xmlhttprequest'
+    const isInertia = !!request.header('x-inertia')
+
+    if (isXhr || isInertia) {
+      return response.status(200).json({ success: true, redirectUrl: `/complaints/${params.id}` })
+    }
+
     return response.redirect().back()
   }
 }
