@@ -4,7 +4,7 @@ import Zone from '#models/zone'
 
 export default class BuildingService {
   async listBuildings(page: number) {
-    return Building.query().preload('supervisor').paginate(page, 10)
+    return Building.query().preload('supervisor').orderBy('created_at', 'desc').paginate(page, 10)
   }
 
   async createBuilding(data: any) {
@@ -16,7 +16,11 @@ export default class BuildingService {
   }
 
   async updateBuilding(id: number, data: any) {
-    const building = await Building.findOrFail(id)
+    const building = await Building.query().where('id', id).first()
+
+    if (!building) {
+      throw new Error(`Building with id ${id} not found`)
+    }
 
     building.merge(data)
     await building.save()
@@ -34,14 +38,19 @@ export default class BuildingService {
   }
 
   async getBuildingStats(id: number) {
-    const zones = await Zone.query().where('building_id', id)
+    const zones = await Zone.query().where('building_id', id).count('* as total')
 
     const complaints = await Complaint.query().where('building_id', id)
 
+    const openComplaints = await Complaint.query()
+      .where('building_id', id)
+      .whereNot('status', 'resolved')
+      .count('* as total')
+
     return {
-      zones: zones.length,
+      zones: zones[0].$extras.total,
       complaints: complaints.length,
-      openComplaints: complaints.filter((c) => c.status !== 'resolved').length,
+      openComplaints: openComplaints[0].$extras.total,
     }
   }
 }

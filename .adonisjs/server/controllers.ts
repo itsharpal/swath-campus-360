@@ -4,7 +4,17 @@
  */
 
 export const controllers = {
+  AdminDashboards: () => import('#controllers/admin_dashboards_controller'),
+  Analytics: () => import('#controllers/analytics_controller'),
   Auth: () => import('#controllers/auth_controller'),
+  Buildings: () => import('#controllers/buildings_controller'),
+  Complaints: () => import('#controllers/complaints_controller'),
+  ContractorDashboards: () => import('#controllers/contractor_dashboards_controller'),
+  Floors: () => import('#controllers/floors_controller'),
+  JobCards: () => import('#controllers/job_cards_controller'),
   NewAccount: () => import('#controllers/new_account_controller'),
+  Reports: () => import('#controllers/reports_controller'),
   Session: () => import('#controllers/session_controller'),
+  SupervisorDashboards: () => import('#controllers/supervisor_dashboards_controller'),
+  Zones: () => import('#controllers/zones_controller'),
 }

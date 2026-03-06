@@ -7,6 +7,7 @@
 |
 */
 
+// import Building from '#models/building'
 import { middleware } from '#start/kernel'
 // import router from '@adonisjs/core/services/router'
 // const AuthController = () => import('#controllers/auth_controller')
@@ -54,21 +55,30 @@ router.post('/logout', [AuthController, 'logout']).use(middleware.auth())
 
 router.group(() => {
   router.get('/buildings', [BuildingsController, 'index'])
+  router.get('/buildings/create', [BuildingsController, 'create'])
+
   router.post('/buildings', [BuildingsController, 'store'])
+
   router.get('/buildings/:id', [BuildingsController, 'show'])
+  router.get('/buildings/:id/edit', [BuildingsController, 'edit'])
+
   router.put('/buildings/:id', [BuildingsController, 'update'])
   router.delete('/buildings/:id', [BuildingsController, 'destroy'])
+
   router.get('/buildings/:id/stats', [BuildingsController, 'stats'])
+  router.get('/buildings/:id/dashboard', [BuildingsController, 'dashboard'])
 })
 
 // FLOOR ROUTES
 
 router.group(() => {
   router.get('/buildings/:buildingId/floors', [FloorsController, 'index'])
+  router.get('/buildings/:buildingId/floors/create', [FloorsController, 'create'])
   router.post('/buildings/:buildingId/floors', [FloorsController, 'store'])
 })
 
 router.group(() => {
+  router.get('/floors/:id/edit', [FloorsController, 'edit'])
   router.put('/floors/:id', [FloorsController, 'update'])
   router.delete('/floors/:id', [FloorsController, 'destroy'])
 })
@@ -84,6 +94,8 @@ router.group(() => {
   router.get('/zones/:id', [ZonesController, 'show'])
   router.put('/zones/:id', [ZonesController, 'update'])
   router.delete('/zones/:id', [ZonesController, 'destroy'])
+  //   router.get('/zones/:zoneId/cleaning-logs', [CleaningLogsController, 'index'])
+  //   router.post('/zones/:zoneId/cleaning-logs', [CleaningLogsController, 'store'])
   router.get('/zones/:id/qr', [ZonesController, 'generateQr'])
 })
 
