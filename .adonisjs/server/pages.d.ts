@@ -17,6 +17,12 @@ declare module '@adonisjs/inertia/types' {
     'admin/users/edit': ExtractProps<(typeof import('../../inertia/pages/admin/users/edit.tsx'))['default']>
     'admin/users/index': ExtractProps<(typeof import('../../inertia/pages/admin/users/index.tsx'))['default']>
     'admin/users/show': ExtractProps<(typeof import('../../inertia/pages/admin/users/show.tsx'))['default']>
+    'analytics/buildings': ExtractProps<(typeof import('../../inertia/pages/analytics/buildings.tsx'))['default']>
+    'analytics/categories': ExtractProps<(typeof import('../../inertia/pages/analytics/categories.tsx'))['default']>
+    'analytics/heatmap': ExtractProps<(typeof import('../../inertia/pages/analytics/heatmap.tsx'))['default']>
+    'analytics/peak_hours': ExtractProps<(typeof import('../../inertia/pages/analytics/peak_hours.tsx'))['default']>
+    'analytics/supervisors': ExtractProps<(typeof import('../../inertia/pages/analytics/supervisors.tsx'))['default']>
+    'analytics/trends': ExtractProps<(typeof import('../../inertia/pages/analytics/trends.tsx'))['default']>
     'auth/login': ExtractProps<(typeof import('../../inertia/pages/auth/login.tsx'))['default']>
     'auth/register': ExtractProps<(typeof import('../../inertia/pages/auth/register.tsx'))['default']>
     'auth/signup': ExtractProps<(typeof import('../../inertia/pages/auth/signup.tsx'))['default']>

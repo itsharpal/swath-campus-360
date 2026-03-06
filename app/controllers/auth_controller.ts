@@ -56,7 +56,7 @@ export default class AuthController {
 
     await auth.use('web').login(user)
 
-    return response.redirect(this.redirectByRole(user.roleId))
+    return response.redirect(await this.redirectByRole(user))
   }
 
   /*
@@ -179,19 +179,21 @@ export default class AuthController {
   | Role Redirect Helper
   |-----------------------------------------
   */
-  private redirectByRole(roleId: number) {
-    switch (roleId) {
-      case 1:
+  private async redirectByRole(user: User) {
+    await user.load('role')
+    const roleName = user.role?.name?.toLowerCase()
+
+    switch (roleName) {
+      case 'admin':
         return '/admin/dashboard'
 
-      case 2:
+      case 'supervisor':
         return '/supervisor/dashboard'
 
-      case 3:
-        return '/contractor/dashboard'
-
-      case 4:
-        return '/student/dashboard'
+      // Teacher/student users can file and track complaints.
+      case 'teacher':
+      case 'student':
+        return '/complaints/create'
 
       default:
         return '/'

@@ -10,6 +10,9 @@
 const AdminUsersController = () => import('#controllers/admin_users_controller')
 const ComplaintsController = () => import('#controllers/complaints_controller')
 const JobCardsController = () => import('#controllers/job_cards_controller')
+const AnalyticsController = () => import('#controllers/analytics_controller')
+const DashboardController = () => import('#controllers/dashboard_controller')
+const ProfileController = () => import('../app/controllers/profile_controller.js')
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 const AuthController = () => import('#controllers/auth_controller')
@@ -32,14 +35,19 @@ router.on('/').renderInertia('home', {}).as('home')
 //   })
 //   .use(middleware.auth())
 
-router.get('/login', [AuthController, 'showLogin'])
-router.post('/login', [AuthController, 'login'])
+router.get('/login', [AuthController, 'showLogin']).as('auth.show_login')
+router.post('/login', [AuthController, 'login']).as('auth.login')
 
-router.get('/register', [AuthController, 'showRegister'])
-router.post('/register', [AuthController, 'register'])
+router.get('/register', [AuthController, 'showRegister']).as('auth.show_register')
+router.post('/register', [AuthController, 'register']).as('auth.register')
 router.get('/email/verify/:id', [AuthController, 'verifyEmail']).as('auth.verify_email')
 
-router.post('/logout', [AuthController, 'logout']).use(middleware.auth())
+router.post('/logout', [AuthController, 'logout']).use(middleware.auth()).as('auth.logout')
+router.get('/profile', [ProfileController, 'show']).use(middleware.auth()).as('profile.show')
+
+// Dashboards
+router.get('/admin/dashboard', [DashboardController, 'admin']).use(middleware.auth())
+router.get('/supervisor/dashboard', [DashboardController, 'supervisor']).use(middleware.auth())
 
 router
   .group(() => {
@@ -58,34 +66,49 @@ router
     router.delete('/users/:id', [AdminUsersController, 'destroy']).as('admin.users.destroy')
   })
   .prefix('/admin')
-// .middleware(middleware.auth())
+  .middleware(middleware.auth())
 
 // Complaints
 router.get('/complaints', [ComplaintsController, 'index'])
 
 router.get('/complaints/create', [ComplaintsController, 'create'])
 
-router.get('/complaints/my', [ComplaintsController, 'my'])
+router.get('/complaints/my', [ComplaintsController, 'my']).use(middleware.auth())
 
 router.get('/complaints/track/:code', [ComplaintsController, 'track'])
 
-router.get('/complaints/:id/resolve', [ComplaintsController, 'showResolve'])
+router.get('/complaints/:id/resolve', [ComplaintsController, 'showResolve']).use(middleware.auth())
 
 router.post('/complaints', [ComplaintsController, 'store'])
 
 router.get('/complaints/:id', [ComplaintsController, 'show'])
 
-router.put('/complaints/:id/status', [ComplaintsController, 'markInProgress'])
+router
+  .put('/complaints/:id/status', [ComplaintsController, 'markInProgress'])
+  .use(middleware.auth())
 
-router.put('/complaints/:id/resolve', [ComplaintsController, 'resolve'])
+router.put('/complaints/:id/resolve', [ComplaintsController, 'resolve']).use(middleware.auth())
 
 //JOB CARDS
-router.get('/job-cards', [JobCardsController, 'index'])
+router.get('/job-cards', [JobCardsController, 'index']).use(middleware.auth())
 
-router.get('/job-cards/zone/:zoneId', [JobCardsController, 'zoneHistory'])
+router.get('/job-cards/zone/:zoneId', [JobCardsController, 'zoneHistory']).use(middleware.auth())
 
-router.get('/job-cards/:id', [JobCardsController, 'show'])
+router.get('/job-cards/:id', [JobCardsController, 'show']).use(middleware.auth())
 
-router.put('/job-cards/:id/start', [JobCardsController, 'start'])
+router.put('/job-cards/:id/start', [JobCardsController, 'start']).use(middleware.auth())
 
-router.put('/job-cards/:id/complete', [JobCardsController, 'complete'])
+router.put('/job-cards/:id/complete', [JobCardsController, 'complete']).use(middleware.auth())
+
+// Analytics
+router.get('/analytics/buildings', [AnalyticsController, 'buildings']).use(middleware.auth())
+
+router.get('/analytics/supervisors', [AnalyticsController, 'supervisors']).use(middleware.auth())
+
+router.get('/analytics/categories', [AnalyticsController, 'categories']).use(middleware.auth())
+
+router.get('/analytics/heatmap', [AnalyticsController, 'heatmap']).use(middleware.auth())
+
+router.get('/analytics/trends', [AnalyticsController, 'trends']).use(middleware.auth())
+
+router.get('/analytics/peak-hours', [AnalyticsController, 'peakHours']).use(middleware.auth())

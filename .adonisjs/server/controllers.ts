@@ -5,6 +5,7 @@
 
 export const controllers = {
   AdminUsers: () => import('#controllers/admin_users_controller'),
+  Analytics: () => import('#controllers/analytics_controller'),
   Auth: () => import('#controllers/auth_controller'),
   Complaints: () => import('#controllers/complaints_controller'),
   JobCards: () => import('#controllers/job_cards_controller'),

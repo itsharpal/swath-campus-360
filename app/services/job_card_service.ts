@@ -1,4 +1,6 @@
 import JobCard from '#models/job_card'
+import Complaint from '#models/complaint'
+import { DateTime } from 'luxon'
 
 export default class JobCardService {
   /**
@@ -46,6 +48,17 @@ export default class JobCardService {
 
     await job.save()
 
+    if (job.complaintId) {
+      const complaint = await Complaint.find(job.complaintId)
+      if (complaint) {
+        complaint.status = 'in_progress'
+        complaint.assignedSupervisorId = supervisorId
+        complaint.assignedAt = complaint.assignedAt ?? DateTime.now()
+        complaint.inProgressAt = complaint.inProgressAt ?? DateTime.now()
+        await complaint.save()
+      }
+    }
+
     return job.serialize()
   }
 
@@ -68,6 +81,18 @@ export default class JobCardService {
     job.remark = data.remark
 
     await job.save()
+
+    if (job.complaintId) {
+      const complaint = await Complaint.find(job.complaintId)
+      if (complaint && complaint.status !== 'resolved') {
+        complaint.status = 'resolved'
+        complaint.assignedSupervisorId = supervisorId
+        complaint.resolvedAt = DateTime.now()
+        complaint.resolutionRemark = data.remark ?? complaint.resolutionRemark
+        complaint.resolutionPhotoUrl = data.proofPhotoUrl ?? complaint.resolutionPhotoUrl
+        await complaint.save()
+      }
+    }
 
     return job.serialize()
   }

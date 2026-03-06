@@ -8,7 +8,17 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class BuildingSchema extends BaseModel {
-  static $columns = ['cleanlinessScore', 'code', 'createdAt', 'description', 'id', 'isActive', 'name', 'supervisorId', 'updatedAt'] as const
+  static $columns = [
+    'cleanlinessScore',
+    'code',
+    'createdAt',
+    'description',
+    'id',
+    'isActive',
+    'name',
+    'supervisorId',
+    'updatedAt',
+  ] as const
   $columns = BuildingSchema.$columns
   @column()
   declare cleanlinessScore: string | null
@@ -31,7 +41,14 @@ export class BuildingSchema extends BaseModel {
 }
 
 export class ComplaintCategorySchema extends BaseModel {
-  static $columns = ['createdAt', 'defaultPriority', 'description', 'id', 'name', 'updatedAt'] as const
+  static $columns = [
+    'createdAt',
+    'defaultPriority',
+    'description',
+    'id',
+    'name',
+    'updatedAt',
+  ] as const
   $columns = ComplaintCategorySchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -48,7 +65,31 @@ export class ComplaintCategorySchema extends BaseModel {
 }
 
 export class ComplaintSchema extends BaseModel {
-  static $columns = ['assignedAt', 'assignedSupervisorId', 'buildingId', 'categoryId', 'complaintCode', 'createdAt', 'description', 'escalationLevel', 'floorId', 'id', 'inProgressAt', 'isAnonymous', 'photoUrl', 'priority', 'reportedAt', 'reportedBy', 'resolutionPhotoUrl', 'resolutionRemark', 'resolutionTimeMinutes', 'resolvedAt', 'status', 'updatedAt', 'zoneId'] as const
+  static $columns = [
+    'assignedAt',
+    'assignedSupervisorId',
+    'buildingId',
+    'categoryId',
+    'complaintCode',
+    'createdAt',
+    'description',
+    'escalationLevel',
+    'floorId',
+    'id',
+    'inProgressAt',
+    'isAnonymous',
+    'photoUrl',
+    'priority',
+    'reportedAt',
+    'reportedBy',
+    'resolutionPhotoUrl',
+    'resolutionRemark',
+    'resolutionTimeMinutes',
+    'resolvedAt',
+    'status',
+    'updatedAt',
+    'zoneId',
+  ] as const
   $columns = ComplaintSchema.$columns
   @column.dateTime()
   declare assignedAt: DateTime | null
@@ -116,7 +157,20 @@ export class FloorSchema extends BaseModel {
 }
 
 export class JobCardSchema extends BaseModel {
-  static $columns = ['complaintId', 'completedAt', 'createdAt', 'id', 'proofPhotoUrl', 'remark', 'scheduledFor', 'status', 'supervisorId', 'type', 'updatedAt', 'zoneId'] as const
+  static $columns = [
+    'complaintId',
+    'completedAt',
+    'createdAt',
+    'id',
+    'proofPhotoUrl',
+    'remark',
+    'scheduledFor',
+    'status',
+    'supervisorId',
+    'type',
+    'updatedAt',
+    'zoneId',
+  ] as const
   $columns = JobCardSchema.$columns
   @column()
   declare complaintId: number | null
@@ -160,7 +214,18 @@ export class RoleSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'emailVerifiedAt', 'id', 'isActive', 'name', 'password', 'phone', 'roleId', 'updatedAt'] as const
+  static $columns = [
+    'createdAt',
+    'email',
+    'emailVerifiedAt',
+    'id',
+    'isActive',
+    'name',
+    'password',
+    'phone',
+    'roleId',
+    'updatedAt',
+  ] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -200,7 +265,19 @@ export class ZoneTypeSchema extends BaseModel {
 }
 
 export class ZoneSchema extends BaseModel {
-  static $columns = ['buildingId', 'cleaningFrequencyHours', 'cleanlinessScore', 'createdAt', 'floorId', 'id', 'lastCleanedAt', 'name', 'qrCode', 'updatedAt', 'zoneTypeId'] as const
+  static $columns = [
+    'buildingId',
+    'cleaningFrequencyHours',
+    'cleanlinessScore',
+    'createdAt',
+    'floorId',
+    'id',
+    'lastCleanedAt',
+    'name',
+    'qrCode',
+    'updatedAt',
+    'zoneTypeId',
+  ] as const
   $columns = ZoneSchema.$columns
   @column()
   declare buildingId: number

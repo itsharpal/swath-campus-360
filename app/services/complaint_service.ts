@@ -1,4 +1,5 @@
 import Complaint from '#models/complaint'
+import JobCard from '#models/job_card'
 import Zone from '#models/zone'
 import { DateTime } from 'luxon'
 
@@ -76,9 +77,25 @@ export default class ComplaintService {
 
     complaint.status = 'in_progress'
     complaint.assignedSupervisorId = supervisorId
+    complaint.assignedAt = complaint.assignedAt ?? DateTime.now()
     complaint.inProgressAt = DateTime.now()
 
     await complaint.save()
+
+    const existingActiveJob = await JobCard.query()
+      .where('complaint_id', complaint.id)
+      .whereNot('status', 'completed')
+      .first()
+
+    if (!existingActiveJob) {
+      await JobCard.create({
+        complaintId: complaint.id,
+        zoneId: complaint.zoneId,
+        supervisorId,
+        type: 'complaint_driven',
+        status: 'in_progress',
+      })
+    }
 
     return complaint
   }

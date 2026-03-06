@@ -1,10 +1,10 @@
 import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 
-import User from './user.ts'
-import Floor from './floor.ts'
-import Zone from './zone.ts'
-import Complaint from './complaint.ts'
+import User from './user.js'
+import Floor from './floor.js'
+import Zone from './zone.js'
+import Complaint from './complaint.js'
 import { DateTime } from 'luxon'
 
 export default class Building extends BaseModel {

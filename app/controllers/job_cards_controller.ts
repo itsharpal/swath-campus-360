@@ -16,7 +16,7 @@ export default class JobCardsController {
 
     const jobs = await this.jobCardService.listSupervisorJobs(supervisorId)
 
-    return inertia.render('job_cards/index' as any, {
+    return inertia.render('job_card/index' as any, {
       jobs,
     })
   }
@@ -30,7 +30,7 @@ export default class JobCardsController {
 
     const job = await this.jobCardService.findById(id)
 
-    return inertia.render('job_cards/show' as any, {
+    return inertia.render('job_card/show' as any, {
       job,
     })
   }
@@ -82,7 +82,7 @@ export default class JobCardsController {
 
     const jobs = await this.jobCardService.zoneHistory(zoneId)
 
-    return inertia.render('job_cards/zone_history' as any, {
+    return inertia.render('job_card/zone_history' as any, {
       jobs,
     })
   }

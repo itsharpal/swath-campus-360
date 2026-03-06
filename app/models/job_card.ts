@@ -1,9 +1,9 @@
 import { BaseModel, column, belongsTo, beforeSave } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
-import Complaint from './complaint.ts'
-import Zone from './zone.ts'
-import User from './user.ts'
+import Complaint from './complaint.js'
+import Zone from './zone.js'
+import User from './user.js'
 import { DateTime } from 'luxon'
 
 export default class JobCard extends BaseModel {

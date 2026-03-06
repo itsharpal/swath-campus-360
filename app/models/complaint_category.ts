@@ -1,6 +1,6 @@
 import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
-import Complaint from './complaint.ts'
+import Complaint from './complaint.js'
 import { DateTime } from 'luxon'
 
 export default class ComplaintCategory extends BaseModel {

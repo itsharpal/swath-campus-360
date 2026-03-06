@@ -1,6 +1,6 @@
 import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
-import Zone from './zone.ts'
+import Zone from './zone.js'
 import { DateTime } from 'luxon'
 
 export default class ZoneType extends BaseModel {
