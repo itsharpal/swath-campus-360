@@ -27,6 +27,11 @@ export type ScannedRoutes = {
     'complaints.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.mark_in_progress': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.resolve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_cards.index': { paramsTuple?: []; params?: {} }
+    'job_cards.zone_history': { paramsTuple: [ParamValue]; params: {'zoneId': ParamValue} }
+    'job_cards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_cards.start': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_cards.complete': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'home': { paramsTuple?: []; params?: {} }
@@ -43,6 +48,9 @@ export type ScannedRoutes = {
     'complaints.track': { paramsTuple: [ParamValue]; params: {'code': ParamValue} }
     'complaints.show_resolve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_cards.index': { paramsTuple?: []; params?: {} }
+    'job_cards.zone_history': { paramsTuple: [ParamValue]; params: {'zoneId': ParamValue} }
+    'job_cards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   HEAD: {
     'home': { paramsTuple?: []; params?: {} }
@@ -59,6 +67,9 @@ export type ScannedRoutes = {
     'complaints.track': { paramsTuple: [ParamValue]; params: {'code': ParamValue} }
     'complaints.show_resolve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_cards.index': { paramsTuple?: []; params?: {} }
+    'job_cards.zone_history': { paramsTuple: [ParamValue]; params: {'zoneId': ParamValue} }
+    'job_cards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   POST: {
     'auth.login': { paramsTuple?: []; params?: {} }
@@ -71,6 +82,8 @@ export type ScannedRoutes = {
     'admin.users.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.mark_in_progress': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.resolve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_cards.start': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_cards.complete': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
     'admin.users.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

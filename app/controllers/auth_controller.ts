@@ -1,7 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import Role from '#models/role'
-import hash from '@adonisjs/core/services/hash'
 import router from '@adonisjs/core/services/router'
 import { DateTime } from 'luxon'
 import { appUrl } from '#config/app'
@@ -28,17 +27,12 @@ export default class AuthController {
   */
   async login({ request, auth, response, session }: HttpContext) {
     const { email, password } = request.only(['email', 'password'])
+    const normalizedEmail = email.trim().toLowerCase()
 
-    const user = await User.query().where('email', email).preload('role').first()
-
-    if (!user) {
-      session.flash('error', 'Invalid credentials')
-      return response.redirect().back()
-    }
-
-    const isPasswordValid = await hash.verify(user.password, password)
-
-    if (!isPasswordValid) {
+    let user: User
+    try {
+      user = await User.verifyCredentials(normalizedEmail, password)
+    } catch {
       session.flash('error', 'Invalid credentials')
       return response.redirect().back()
     }
@@ -94,7 +88,9 @@ export default class AuthController {
       'phone',
     ])
 
-    if (!this.scetEmailRegex.test(data.email)) {
+    const normalizedEmail = data.email.trim().toLowerCase()
+
+    if (!this.scetEmailRegex.test(normalizedEmail)) {
       session.flash('error', 'Only @scet.ac.in email addresses are allowed')
       return response.redirect().back()
     }
@@ -113,7 +109,7 @@ export default class AuthController {
       return response.redirect().back()
     }
 
-    const existingUser = await User.findBy('email', data.email)
+    const existingUser = await User.findBy('email', normalizedEmail)
 
     if (existingUser) {
       session.flash('error', 'Email already exists')
@@ -122,8 +118,8 @@ export default class AuthController {
 
     const user = await User.create({
       name: data.name,
-      email: data.email,
-      password: await hash.make(data.password),
+      email: normalizedEmail,
+      password: data.password,
       roleId: selectedRoleId,
       phone: data.phone,
       isActive: true,

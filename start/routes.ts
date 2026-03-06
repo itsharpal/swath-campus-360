@@ -9,6 +9,7 @@
 
 const AdminUsersController = () => import('#controllers/admin_users_controller')
 const ComplaintsController = () => import('#controllers/complaints_controller')
+const JobCardsController = () => import('#controllers/job_cards_controller')
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 const AuthController = () => import('#controllers/auth_controller')
@@ -59,6 +60,7 @@ router
   .prefix('/admin')
 // .middleware(middleware.auth())
 
+// Complaints
 router.get('/complaints', [ComplaintsController, 'index'])
 
 router.get('/complaints/create', [ComplaintsController, 'create'])
@@ -76,3 +78,14 @@ router.get('/complaints/:id', [ComplaintsController, 'show'])
 router.put('/complaints/:id/status', [ComplaintsController, 'markInProgress'])
 
 router.put('/complaints/:id/resolve', [ComplaintsController, 'resolve'])
+
+//JOB CARDS
+router.get('/job-cards', [JobCardsController, 'index'])
+
+router.get('/job-cards/zone/:zoneId', [JobCardsController, 'zoneHistory'])
+
+router.get('/job-cards/:id', [JobCardsController, 'show'])
+
+router.put('/job-cards/:id/start', [JobCardsController, 'start'])
+
+router.put('/job-cards/:id/complete', [JobCardsController, 'complete'])

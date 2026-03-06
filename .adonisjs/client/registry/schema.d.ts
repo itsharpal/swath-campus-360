@@ -260,4 +260,59 @@ export interface Registry {
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/complaints_controller').default['resolve']>>>
     }
   }
+  'job_cards.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/job-cards'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_cards_controller').default['index']>>>
+    }
+  }
+  'job_cards.zone_history': {
+    methods: ["GET","HEAD"]
+    pattern: '/job-cards/zone/:zoneId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { zoneId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_cards_controller').default['zoneHistory']>>>
+    }
+  }
+  'job_cards.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/job-cards/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_cards_controller').default['show']>>>
+    }
+  }
+  'job_cards.start': {
+    methods: ["PUT"]
+    pattern: '/job-cards/:id/start'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_card').startJobValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_card').startJobValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_cards_controller').default['start']>>>
+    }
+  }
+  'job_cards.complete': {
+    methods: ["PUT"]
+    pattern: '/job-cards/:id/complete'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_card').completeJobValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_card').completeJobValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_cards_controller').default['complete']>>>
+    }
+  }
 }

@@ -144,6 +144,36 @@ const routes = {
     tokens: [{"old":"/complaints/:id/resolve","type":0,"val":"complaints","end":""},{"old":"/complaints/:id/resolve","type":1,"val":"id","end":""},{"old":"/complaints/:id/resolve","type":0,"val":"resolve","end":""}],
     types: placeholder as Registry['complaints.resolve']['types'],
   },
+  'job_cards.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/job-cards',
+    tokens: [{"old":"/job-cards","type":0,"val":"job-cards","end":""}],
+    types: placeholder as Registry['job_cards.index']['types'],
+  },
+  'job_cards.zone_history': {
+    methods: ["GET","HEAD"],
+    pattern: '/job-cards/zone/:zoneId',
+    tokens: [{"old":"/job-cards/zone/:zoneId","type":0,"val":"job-cards","end":""},{"old":"/job-cards/zone/:zoneId","type":0,"val":"zone","end":""},{"old":"/job-cards/zone/:zoneId","type":1,"val":"zoneId","end":""}],
+    types: placeholder as Registry['job_cards.zone_history']['types'],
+  },
+  'job_cards.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/job-cards/:id',
+    tokens: [{"old":"/job-cards/:id","type":0,"val":"job-cards","end":""},{"old":"/job-cards/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['job_cards.show']['types'],
+  },
+  'job_cards.start': {
+    methods: ["PUT"],
+    pattern: '/job-cards/:id/start',
+    tokens: [{"old":"/job-cards/:id/start","type":0,"val":"job-cards","end":""},{"old":"/job-cards/:id/start","type":1,"val":"id","end":""},{"old":"/job-cards/:id/start","type":0,"val":"start","end":""}],
+    types: placeholder as Registry['job_cards.start']['types'],
+  },
+  'job_cards.complete': {
+    methods: ["PUT"],
+    pattern: '/job-cards/:id/complete',
+    tokens: [{"old":"/job-cards/:id/complete","type":0,"val":"job-cards","end":""},{"old":"/job-cards/:id/complete","type":1,"val":"id","end":""},{"old":"/job-cards/:id/complete","type":0,"val":"complete","end":""}],
+    types: placeholder as Registry['job_cards.complete']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

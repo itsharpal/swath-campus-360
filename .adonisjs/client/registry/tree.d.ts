@@ -33,4 +33,11 @@ export interface ApiDefinition {
     markInProgress: typeof routes['complaints.mark_in_progress']
     resolve: typeof routes['complaints.resolve']
   }
+  jobCards: {
+    index: typeof routes['job_cards.index']
+    zoneHistory: typeof routes['job_cards.zone_history']
+    show: typeof routes['job_cards.show']
+    start: typeof routes['job_cards.start']
+    complete: typeof routes['job_cards.complete']
+  }
 }
