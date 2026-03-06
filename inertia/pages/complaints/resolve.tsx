@@ -121,13 +121,30 @@ export default function ResolveComplaint({ complaint }: Props) {
       formData.append('resolutionRemark', data.resolutionRemark)
       formData.append('resolutionPhoto', fileBlob as Blob, 'resolution.jpg')
 
+      // Attach CSRF token header if available (Adonis expects X-XSRF-TOKEN)
+      const getCsrfFromMeta = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      const getCsrfFromCookie = () => {
+        const m = document.cookie.match(/(^|;)\s*XSRF-TOKEN=([^;]+)/)
+        return m ? decodeURIComponent(m[2]) : null
+      }
+      const csrf = getCsrfFromMeta() || getCsrfFromCookie() || (window as any).__INERTIA_SSR__?.csrf || ''
+
+      const headers: Record<string, string> = {}
+      if (csrf) headers['X-XSRF-TOKEN'] = csrf
+      // mark as XHR so server can return JSON instead of redirect
+      headers['X-Requested-With'] = 'XMLHttpRequest'
+
       const resp = await fetch(`/complaints/${complaint.id}/resolve`, {
         method: 'PUT',
         body: formData,
         credentials: 'same-origin',
+        headers,
       })
 
       if (resp.ok) {
+        // Try to parse JSON (controller returns { success: true, redirectUrl }) for XHR
+        let json: any = null
+        try { json = await resp.json() } catch (e) { /* ignore json parse */ }
         await Swal.fire({
           title: 'Complaint Resolved!',
           text: 'The complaint has been successfully marked as resolved.',
@@ -139,9 +156,22 @@ export default function ResolveComplaint({ complaint }: Props) {
           background: '#ffffff',
           customClass: { popup: 'swal-campus-popup' },
         })
-        window.location.reload()
+        if (json && json.redirectUrl) {
+          window.location.href = json.redirectUrl
+        } else {
+          window.location.reload()
+        }
       } else {
-        await Swal.fire({ title: 'Error', text: 'Something went wrong. Please try again.', icon: 'error', confirmButtonColor: '#16a34a', background: '#ffffff', customClass: { popup: 'swal-campus-popup' } })
+        // try to extract a helpful message from the server response
+        let body = ''
+        try {
+          const text = await resp.text()
+          body = text
+        } catch (e) {
+          body = ''
+        }
+        const msg = body ? `Server response: ${body}` : 'Something went wrong. Please try again.'
+        await Swal.fire({ title: 'Error', text: msg, icon: 'error', confirmButtonColor: '#16a34a', background: '#ffffff', customClass: { popup: 'swal-campus-popup' } })
       }
     } catch (err) {
       console.error(err)

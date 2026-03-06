@@ -1,3 +1,4 @@
+import React, { useState, useMemo } from 'react'
 import { Link } from '@adonisjs/inertia/react'
 import CampusHeatmap from '~/components/dashboard/campus_heatmap'
 import type { ComplaintHeatmap } from '~/components/dashboard/campus_heatmap'
@@ -31,7 +32,81 @@ const statusColor: Record<string, string> = {
   closed: 'bg-gray-100 text-gray-600 border border-gray-200',
 }
 
-export default function AdminDashboard({ stats, recentComplaints, complaintHeatmap }: Props) {
+export default function AdminDashboard({ stats, recentComplaints }: Props) {
+  const [range, setRange] = useState<'all' | 'today' | 'weekly' | 'monthly' | 'yearly'>('all')
+  const [fromDate, setFromDate] = useState<string>('')
+  const [toDate, setToDate] = useState<string>('')
+
+  // For now we only have recentComplaints without timestamps available on the client.
+  // Exports will operate on the currently displayed rows. For full dataset/date
+  // filtering and server-generated PDF/CSV, implement server endpoints like
+  // GET /admin/complaints?from=YYYY-MM-DD&to=YYYY-MM-DD and
+  // GET /admin/complaints/export?format=csv|pdf&from=...&to=...
+
+  const filtered = useMemo(() => {
+    // No createdAt on complaint in the provided dataset; client-side filtering
+    // by date/range requires timestamps. For now we return recentComplaints.
+    // If server date filtering is available, the UI will call the server endpoint.
+    return recentComplaints
+  }, [recentComplaints, range, fromDate, toDate])
+
+  function exportCsv(rows: Complaint[]) {
+    const headers = ['Code', 'Zone', 'Category', 'Status']
+    const csv = [headers.join(',')].concat(rows.map(r => [
+      `"${r.complaintCode}"`,
+      `"${r.zone?.name ?? ''}"`,
+      `"${r.category?.name ?? ''}"`,
+      `"${r.status.replace('_', ' ')}"`,
+    ].join(','))).join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `complaints_export_${new Date().toISOString().slice(0,10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  function exportPdf(rows: Complaint[]) {
+    // Simple printable HTML window as PDF fallback. Better: implement server PDF.
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Complaints Export</title><style>table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}</style></head><body><h2>Complaints Export</h2><table><thead><tr><th>Code</th><th>Zone</th><th>Category</th><th>Status</th></tr></thead><tbody>${rows.map(r => `<tr><td>${r.complaintCode}</td><td>${r.zone?.name ?? ''}</td><td>${r.category?.name ?? ''}</td><td>${r.status.replace('_',' ')}</td></tr>`).join('')}</tbody></table></body></html>`
+    const w = window.open('', '_blank')
+    if (!w) return
+    w.document.write(html)
+    w.document.close()
+    // Give the new window a moment to render then open print dialog
+    setTimeout(() => w.print(), 500)
+  }
+  async function tryServerExport(format: 'csv' | 'pdf', from?: string, to?: string) {
+    try {
+      const qs = new URLSearchParams()
+      qs.set('format', format)
+      if (from) qs.set('from', from)
+      if (to) qs.set('to', to)
+      const url = `/admin/complaints/export?${qs.toString()}`
+      const resp = await fetch(url, { credentials: 'same-origin' })
+      if (!resp.ok) throw new Error(`Server returned ${resp.status}`)
+      const blob = await resp.blob()
+      const disposition = resp.headers.get('content-disposition') || ''
+      let filename = `complaints_export_${new Date().toISOString().slice(0,10)}.${format}`
+      const m = disposition.match(/filename="?([^";]+)"?/)
+      if (m) filename = m[1]
+      const link = document.createElement('a')
+      const href = URL.createObjectURL(blob)
+      link.href = href
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(href)
+      return true
+    } catch (err) {
+      return false
+    }
+  }
   const statCards = [
     {
       label: 'Total Complaints',
@@ -216,6 +291,39 @@ export default function AdminDashboard({ stats, recentComplaints, complaintHeatm
             }} />
           </div>
 
+            <div style={{ padding: '0.9rem 1.5rem', display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              {/* Left: range buttons */}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => { setRange('today') }} style={{ padding: '7px 12px', borderRadius: 10, background: range === 'today' ? '#16a34a' : '#fff', color: range === 'today' ? '#fff' : '#374151', border: '1px solid #e6eef3', fontWeight: 600 }}>Today</button>
+                <button type="button" onClick={() => { setRange('weekly') }} style={{ padding: '7px 12px', borderRadius: 10, background: range === 'weekly' ? '#16a34a' : '#fff', color: range === 'weekly' ? '#fff' : '#374151', border: '1px solid #e6eef3', fontWeight: 600 }}>Weekly</button>
+                <button type="button" onClick={() => { setRange('monthly') }} style={{ padding: '7px 12px', borderRadius: 10, background: range === 'monthly' ? '#16a34a' : '#fff', color: range === 'monthly' ? '#fff' : '#374151', border: '1px solid #e6eef3', fontWeight: 600 }}>Monthly</button>
+                <button type="button" onClick={() => { setRange('yearly') }} style={{ padding: '7px 12px', borderRadius: 10, background: range === 'yearly' ? '#16a34a' : '#fff', color: range === 'yearly' ? '#fff' : '#374151', border: '1px solid #e6eef3', fontWeight: 600 }}>Yearly</button>
+              </div>
+
+              {/* Center: compact date filter */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 6, marginRight: 6 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: 6, fontWeight: 600 }}>Or filter by date</span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input aria-label="from date" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ padding: '6px 8px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '0.9rem' }} />
+                    <input aria-label="to date" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ padding: '6px 8px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '0.9rem' }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: export actions */}
+              <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+                <button type="button" onClick={async () => {
+                  const ok = await tryServerExport('csv', fromDate || undefined, toDate || undefined)
+                  if (!ok) exportCsv(filtered)
+                }} style={{ padding: '8px 14px', borderRadius: 10, background: '#fff', color: '#16a34a', border: '1px solid #bbf7d0', fontWeight: 700 }}>Export CSV</button>
+                <button type="button" onClick={async () => {
+                  const ok = await tryServerExport('pdf', fromDate || undefined, toDate || undefined)
+                  if (!ok) exportPdf(filtered)
+                }} style={{ padding: '8px 14px', borderRadius: 10, background: '#fff', color: '#16a34a', border: '1px solid #bbf7d0', fontWeight: 700 }}>Export PDF</button>
+              </div>
+            </div>
+
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -230,7 +338,7 @@ export default function AdminDashboard({ stats, recentComplaints, complaintHeatm
                 </tr>
               </thead>
               <tbody>
-                {recentComplaints.map((c, i) => (
+                {filtered.map((c, i) => (
                   <tr
                     key={c.id}
                     style={{
