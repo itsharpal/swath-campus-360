@@ -13,6 +13,9 @@ const JobCardsController = () => import('#controllers/job_cards_controller')
 const AnalyticsController = () => import('#controllers/analytics_controller')
 const DashboardController = () => import('#controllers/dashboard_controller')
 const ProfileController = () => import('../app/controllers/profile_controller.js')
+const BuildingsController = () => import('#controllers/buildings_controller')
+const FloorsController = () => import('#controllers/floors_controller')
+const ZonesController = () => import('#controllers/zones_controller')
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 const AuthController = () => import('#controllers/auth_controller')
@@ -112,3 +115,41 @@ router.get('/analytics/heatmap', [AnalyticsController, 'heatmap']).use(middlewar
 router.get('/analytics/trends', [AnalyticsController, 'trends']).use(middleware.auth())
 
 router.get('/analytics/peak-hours', [AnalyticsController, 'peakHours']).use(middleware.auth())
+
+// Buildings / Floors / Zones
+router.group(() => {
+  router.get('/buildings', [BuildingsController, 'index']).as('buildings.index')
+  router.get('/buildings/create', [BuildingsController, 'create']).as('buildings.create')
+  router.post('/buildings', [BuildingsController, 'store']).as('buildings.store')
+  router.get('/buildings/:id', [BuildingsController, 'show']).as('buildings.show')
+  router.get('/buildings/:id/edit', [BuildingsController, 'edit']).as('buildings.edit')
+  router.put('/buildings/:id', [BuildingsController, 'update']).as('buildings.update')
+  router.delete('/buildings/:id', [BuildingsController, 'destroy']).as('buildings.destroy')
+  router.get('/buildings/:id/stats', [BuildingsController, 'stats']).as('buildings.stats')
+  router
+    .get('/buildings/:id/dashboard', [BuildingsController, 'dashboard'])
+    .as('buildings.dashboard')
+
+  router.get('/buildings/:buildingId/floors', [FloorsController, 'index']).as('floors.index')
+
+  router
+    .get('/buildings/:buildingId/floors/create', [FloorsController, 'create'])
+    .as('floors.create')
+
+  router.post('/buildings/:buildingId/floors', [FloorsController, 'store']).as('floors.store')
+
+  router.get('/floors/:id/edit', [FloorsController, 'edit']).as('floors.edit')
+  router.put('/floors/:id', [FloorsController, 'update']).as('floors.update')
+  router.delete('/floors/:id', [FloorsController, 'destroy']).as('floors.destroy')
+
+  router.get('/floors/:floorId/zones', [ZonesController, 'index']).as('zones.index')
+  router.get('/floors/:floorId/zones/create', [ZonesController, 'create']).as('zones.create')
+  router.post('/floors/:floorId/zones', [ZonesController, 'store']).as('zones.store')
+  router.get('/zones/:id', [ZonesController, 'show']).as('zones.show')
+  router.get('/zones/:id/edit', [ZonesController, 'edit']).as('zones.edit')
+  router.put('/zones/:id', [ZonesController, 'update']).as('zones.update')
+  router.delete('/zones/:id', [ZonesController, 'destroy']).as('zones.destroy')
+  router.get('/zones/:id/qr', [ZonesController, 'generateQr']).as('zones.generate_qr')
+  router.get('/zones/by-qr/:qr', [ZonesController, 'resolveByQr']).as('zones.resolve_by_qr')
+})
+//.use(middleware.auth())

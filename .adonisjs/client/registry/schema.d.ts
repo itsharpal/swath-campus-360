@@ -84,6 +84,39 @@ export interface Registry {
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['logout']>>>
     }
   }
+  'profile.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/profile'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: unknown
+    }
+  }
+  'dashboard.admin': {
+    methods: ["GET","HEAD"]
+    pattern: '/admin/dashboard'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['admin']>>>
+    }
+  }
+  'dashboard.supervisor': {
+    methods: ["GET","HEAD"]
+    pattern: '/supervisor/dashboard'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['supervisor']>>>
+    }
+  }
   'admin.users.index': {
     methods: ["GET","HEAD"]
     pattern: '/admin/users'
@@ -313,6 +346,336 @@ export interface Registry {
       params: { id: ParamValue }
       query: ExtractQuery<InferInput<(typeof import('#validators/job_card').completeJobValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_cards_controller').default['complete']>>>
+    }
+  }
+  'analytics.buildings': {
+    methods: ["GET","HEAD"]
+    pattern: '/analytics/buildings'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/analytics_controller').default['buildings']>>>
+    }
+  }
+  'analytics.supervisors': {
+    methods: ["GET","HEAD"]
+    pattern: '/analytics/supervisors'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/analytics_controller').default['supervisors']>>>
+    }
+  }
+  'analytics.categories': {
+    methods: ["GET","HEAD"]
+    pattern: '/analytics/categories'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/analytics_controller').default['categories']>>>
+    }
+  }
+  'analytics.heatmap': {
+    methods: ["GET","HEAD"]
+    pattern: '/analytics/heatmap'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/analytics_controller').default['heatmap']>>>
+    }
+  }
+  'analytics.trends': {
+    methods: ["GET","HEAD"]
+    pattern: '/analytics/trends'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/analytics_controller').default['trends']>>>
+    }
+  }
+  'analytics.peak_hours': {
+    methods: ["GET","HEAD"]
+    pattern: '/analytics/peak-hours'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/analytics_controller').default['peakHours']>>>
+    }
+  }
+  'buildings.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/buildings'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['index']>>>
+    }
+  }
+  'buildings.create': {
+    methods: ["GET","HEAD"]
+    pattern: '/buildings/create'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['create']>>>
+    }
+  }
+  'buildings.store': {
+    methods: ["POST"]
+    pattern: '/buildings'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/building').createBuildingValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/building').createBuildingValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['store']>>>
+    }
+  }
+  'buildings.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/buildings/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['show']>>>
+    }
+  }
+  'buildings.edit': {
+    methods: ["GET","HEAD"]
+    pattern: '/buildings/:id/edit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['edit']>>>
+    }
+  }
+  'buildings.update': {
+    methods: ["PUT"]
+    pattern: '/buildings/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/building').updateBuildingValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/building').updateBuildingValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['update']>>>
+    }
+  }
+  'buildings.destroy': {
+    methods: ["DELETE"]
+    pattern: '/buildings/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['destroy']>>>
+    }
+  }
+  'buildings.stats': {
+    methods: ["GET","HEAD"]
+    pattern: '/buildings/:id/stats'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['stats']>>>
+    }
+  }
+  'buildings.dashboard': {
+    methods: ["GET","HEAD"]
+    pattern: '/buildings/:id/dashboard'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/buildings_controller').default['dashboard']>>>
+    }
+  }
+  'floors.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/buildings/:buildingId/floors'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { buildingId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/floors_controller').default['index']>>>
+    }
+  }
+  'floors.create': {
+    methods: ["GET","HEAD"]
+    pattern: '/buildings/:buildingId/floors/create'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { buildingId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/floors_controller').default['create']>>>
+    }
+  }
+  'floors.store': {
+    methods: ["POST"]
+    pattern: '/buildings/:buildingId/floors'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/floor').createFloorValidator)>>
+      paramsTuple: [ParamValue]
+      params: { buildingId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/floor').createFloorValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/floors_controller').default['store']>>>
+    }
+  }
+  'floors.edit': {
+    methods: ["GET","HEAD"]
+    pattern: '/floors/:id/edit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/floors_controller').default['edit']>>>
+    }
+  }
+  'floors.update': {
+    methods: ["PUT"]
+    pattern: '/floors/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/floor').updateFloorValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/floor').updateFloorValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/floors_controller').default['update']>>>
+    }
+  }
+  'floors.destroy': {
+    methods: ["DELETE"]
+    pattern: '/floors/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/floors_controller').default['destroy']>>>
+    }
+  }
+  'zones.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/floors/:floorId/zones'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { floorId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['index']>>>
+    }
+  }
+  'zones.create': {
+    methods: ["GET","HEAD"]
+    pattern: '/floors/:floorId/zones/create'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { floorId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['create']>>>
+    }
+  }
+  'zones.store': {
+    methods: ["POST"]
+    pattern: '/floors/:floorId/zones'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/zone').createZoneValidator)>>
+      paramsTuple: [ParamValue]
+      params: { floorId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/zone').createZoneValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['store']>>>
+    }
+  }
+  'zones.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/zones/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['show']>>>
+    }
+  }
+  'zones.edit': {
+    methods: ["GET","HEAD"]
+    pattern: '/zones/:id/edit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['edit']>>>
+    }
+  }
+  'zones.update': {
+    methods: ["PUT"]
+    pattern: '/zones/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/zone').updateZoneValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/zone').updateZoneValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['update']>>>
+    }
+  }
+  'zones.destroy': {
+    methods: ["DELETE"]
+    pattern: '/zones/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['destroy']>>>
+    }
+  }
+  'zones.generate_qr': {
+    methods: ["GET","HEAD"]
+    pattern: '/zones/:id/qr'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['generateQr']>>>
+    }
+  }
+  'zones.resolve_by_qr': {
+    methods: ["GET","HEAD"]
+    pattern: '/zones/by-qr/:qr'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { qr: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/zones_controller').default['resolveByQr']>>>
     }
   }
 }
