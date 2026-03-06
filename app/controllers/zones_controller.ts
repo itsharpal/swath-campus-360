@@ -68,8 +68,11 @@ export default class ZonesController {
 
     const zone = await this.zoneService.getZone(zoneId)
 
+    const zoneTypes = await ZoneType.all()
+
     return inertia.render('zones/edit', {
       zone: zone.serialize(),
+      zoneTypes: zoneTypes.map((z: { serialize: () => any }) => z.serialize()),
     })
   }
 
