@@ -13,6 +13,7 @@ export const updateStatusValidator = vine.create({
 })
 
 export const resolveComplaintValidator = vine.create({
+  // We validate the remark here; the photo will be uploaded as a file (multipart)
+  // and handled separately in the controller.
   resolutionRemark: vine.string().trim().nullable(),
-  resolutionPhotoUrl: vine.string().nullable(),
 })

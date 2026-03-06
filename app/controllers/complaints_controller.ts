@@ -2,7 +2,16 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import ComplaintService from '#services/complaint_service'
 import Zone from '#models/zone'
+import Building from '#models/building'
+import Floor from '#models/floor'
 import ComplaintCategory from '#models/complaint_category'
+// Runtime import: use the package path so Node can resolve without IoC loader
+// Use a runtime package import so Node can resolve Application when IoC alias
+// resolution isn't active (some dev setups run files without the Adonis loader).
+// @ts-ignore: runtime-only module resolution
+// Use process.cwd() + /public/uploads to avoid importing Adonis Application here.
+import fs from 'node:fs'
+import path from 'node:path'
 
 import {
   createComplaintValidator,
@@ -17,18 +26,32 @@ export default class ComplaintsController {
   /**
    * GET /complaints/create
    */
-  async create({ inertia }: HttpContext) {
+  async create({ request, inertia }: HttpContext) {
     const zoneRecords = await Zone.query().orderBy('name', 'asc')
     const categoryRecords = await ComplaintCategory.query().orderBy('name', 'asc')
+    const buildingRecords = await Building.query().orderBy('name', 'asc')
+    const floorRecords = await Floor.query().orderBy('name', 'asc')
 
     const zones = zoneRecords.map((zone) => zone.serialize())
     const categories = categoryRecords.map((category) => category.serialize())
+    const buildings = buildingRecords.map((b) => b.serialize())
+    const floors = floorRecords.map((f) => f.serialize())
+
+    // Prefill values if provided via query params (e.g. from QR redirect)
+    const prefillZoneId = Number(request.input('zoneId', 0))
+    const prefillBuildingId = Number(request.input('buildingId', 0))
+    const prefillFloorId = Number(request.input('floorId', 0))
 
     return inertia.render(
       'complaints/create' as any,
       {
         zones,
         categories,
+        buildings,
+        floors,
+        prefillZoneId,
+        prefillBuildingId,
+        prefillFloorId,
       } as any
     )
   }
@@ -139,10 +162,44 @@ export default class ComplaintsController {
   /**
    * PUT /complaints/:id/resolve
    */
-  async resolve({ params, request, response }: HttpContext) {
+  async resolve({ params, request, response, session }: HttpContext) {
     const payload = await request.validateUsing(resolveComplaintValidator)
+    // Handle uploaded file (multipart/form-data). Field name: resolutionPhoto
+    const uploadedFile = request.file('resolutionPhoto', {
+      size: '10mb',
+      extnames: ['jpg', 'jpeg', 'png'],
+    })
 
-    await this.complaintService.resolve(Number(params.id), payload)
+    if (!uploadedFile) {
+      session.flash('error', 'Please attach a proof photo (camera capture).')
+      return response.redirect().back()
+    }
+
+  // Ensure uploads directory exists under public
+  // We avoid importing Adonis Application here to keep the controller resolvable
+  // even when the IoC loader isn't active. Use process.cwd() to locate public.
+  const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true })
+    }
+
+    // Build a safe filename and move file to public/uploads
+    const timestamp = Date.now()
+    const clientName = uploadedFile.clientName || `photo_${timestamp}`
+    const safeName = `${timestamp}_${clientName.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+
+    await uploadedFile.move(uploadsDir, { name: safeName })
+
+    // Store the public URL path (served from /uploads)
+    const publicUrl = path.posix.join('/uploads', safeName)
+
+    // Pass resolutionPhotoUrl as the stored public URL to the service
+    const payloadWithPhoto = {
+      ...payload,
+      resolutionPhotoUrl: publicUrl,
+    }
+
+    await this.complaintService.resolve(Number(params.id), payloadWithPhoto)
 
     return response.redirect().back()
   }

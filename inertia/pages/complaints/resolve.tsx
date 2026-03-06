@@ -1,3 +1,4 @@
+import React, { useState, useRef, useEffect } from 'react'
 import { useForm } from '@inertiajs/react'
 import { Link } from '@adonisjs/inertia/react'
 import Swal from 'sweetalert2'
@@ -28,16 +29,73 @@ function focus(e: React.FocusEvent<any>) { e.target.style.borderColor = '#16a34a
 function blur(e: React.FocusEvent<any>)  { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none' }
 
 export default function ResolveComplaint({ complaint }: Props) {
-  const { data, setData, put, processing, errors } = useForm({
-    resolutionRemark:   '',
-    resolutionPhotoUrl: '',
+  const { data, setData, errors } = useForm({
+    resolutionRemark: '',
   })
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [fileBlob, setFileBlob] = useState<Blob | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = String(reader.result || '')
+      // Compress/rescale the image to reduce payload size
+      const img = new Image()
+      img.onload = () => {
+        const MAX_W = 1200
+        const MAX_H = 1200
+        let w = img.width
+        let h = img.height
+        if (w > MAX_W || h > MAX_H) {
+          const ratio = Math.min(MAX_W / w, MAX_H / h)
+          w = Math.round(w * ratio)
+          h = Math.round(h * ratio)
+        }
+        const c = document.createElement('canvas')
+        c.width = w
+        c.height = h
+        const ctx = c.getContext('2d')!
+        ctx.drawImage(img, 0, 0, w, h)
+        const compressed = c.toDataURL('image/jpeg', 0.75)
+        // convert dataURL to blob and set preview
+        fetch(compressed)
+          .then((res) => res.blob())
+          .then((blob) => {
+            setFileBlob(blob)
+            setPhotoPreview(URL.createObjectURL(blob))
+          })
+      }
+      img.src = result
+    }
+    reader.readAsDataURL(file)
+  }
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const [isCameraOpen, setIsCameraOpen] = useState(false)
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t: MediaStreamTrack) => t.stop())
+        streamRef.current = null
+      }
+    }
+  }, [])
 
   async function submit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
 
     if (!data.resolutionRemark.trim()) {
       Swal.fire({ title: 'Remark required', text: 'Please provide a resolution remark before submitting.', icon: 'warning', confirmButtonColor: '#16a34a', background: '#ffffff', customClass: { popup: 'swal-campus-popup' } })
+      return
+    }
+
+    if (!fileBlob) {
+      Swal.fire({ title: 'Photo required', text: 'Please capture a proof photo using your camera before submitting.', icon: 'warning', confirmButtonColor: '#16a34a', background: '#ffffff', customClass: { popup: 'swal-campus-popup' } })
       return
     }
 
@@ -56,24 +114,41 @@ export default function ResolveComplaint({ complaint }: Props) {
 
     if (!result.isConfirmed) return
 
-    put(`/complaints/${complaint.id}/resolve`, {
-      onSuccess: () => Swal.fire({
-        title: 'Complaint Resolved!',
-        text: 'The complaint has been successfully marked as resolved.',
-        icon: 'success',
-        confirmButtonColor: '#16a34a',
-        timer: 2500,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        background: '#ffffff',
-        customClass: { popup: 'swal-campus-popup' },
-      }),
-      onError: () => Swal.fire({
-        title: 'Error', text: 'Something went wrong. Please try again.',
-        icon: 'error', confirmButtonColor: '#16a34a',
-        background: '#ffffff', customClass: { popup: 'swal-campus-popup' },
-      }),
-    })
+    setSubmitting(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('resolutionRemark', data.resolutionRemark)
+      formData.append('resolutionPhoto', fileBlob as Blob, 'resolution.jpg')
+
+      const resp = await fetch(`/complaints/${complaint.id}/resolve`, {
+        method: 'PUT',
+        body: formData,
+        credentials: 'same-origin',
+      })
+
+      if (resp.ok) {
+        await Swal.fire({
+          title: 'Complaint Resolved!',
+          text: 'The complaint has been successfully marked as resolved.',
+          icon: 'success',
+          confirmButtonColor: '#16a34a',
+          timer: 2200,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          background: '#ffffff',
+          customClass: { popup: 'swal-campus-popup' },
+        })
+        window.location.reload()
+      } else {
+        await Swal.fire({ title: 'Error', text: 'Something went wrong. Please try again.', icon: 'error', confirmButtonColor: '#16a34a', background: '#ffffff', customClass: { popup: 'swal-campus-popup' } })
+      }
+    } catch (err) {
+      console.error(err)
+      await Swal.fire({ title: 'Error', text: 'Something went wrong. Please try again.', icon: 'error', confirmButtonColor: '#16a34a', background: '#ffffff', customClass: { popup: 'swal-campus-popup' } })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -144,22 +219,99 @@ export default function ResolveComplaint({ complaint }: Props) {
               {errors.resolutionRemark && <p style={{ fontSize: '0.73rem', color: '#ef4444', marginTop: '4px' }}>{errors.resolutionRemark}</p>}
             </div>
 
-            {/* Photo URL */}
+            {/* Proof Photo (camera capture) */}
             <div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                 <svg width="14" height="14" fill="none" stroke="#16a34a" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                Proof Photo URL
-                <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: '#94a3b8', fontWeight: 400 }}>Optional</span>
+                Proof Photo
+                <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Required (camera only)</span>
               </label>
-              <input
-                type="text"
-                placeholder="https://example.com/resolved-photo.jpg"
-                value={data.resolutionPhotoUrl}
-                onChange={(e) => setData('resolutionPhotoUrl', e.target.value)}
-                onFocus={focus} onBlur={blur}
-                style={{ ...inputStyle, borderColor: errors.resolutionPhotoUrl ? '#fca5a5' : '#e2e8f0' }}
-              />
-              {errors.resolutionPhotoUrl && <p style={{ fontSize: '0.73rem', color: '#ef4444', marginTop: '4px' }}>{errors.resolutionPhotoUrl}</p>}
+
+              {!photoPreview && (
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <button type="button" onClick={async () => {
+                    // open camera
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                      // fallback to file input if getUserMedia not supported
+                      const el = document.getElementById('fallback-file-input') as HTMLInputElement | null
+                      el?.click()
+                      return
+                    }
+                    setIsCameraOpen(true)
+                    try {
+                      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                      streamRef.current = stream
+                      if (videoRef.current) videoRef.current.srcObject = stream
+                    } catch (err) {
+                      console.error('Camera open failed', err)
+                      const el = document.getElementById('fallback-file-input') as HTMLInputElement | null
+                      el?.click()
+                    }
+                  }} style={{ padding: '10px 14px', borderRadius: 10, background: '#16a34a', color: '#fff', border: 'none', cursor: 'pointer' }}>Open Camera</button>
+
+                  <input id="fallback-file-input" type="file" accept="image/*" capture="environment" onChange={handleFileChange} style={{ display: 'none' }} />
+                  <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>Tap to open camera and capture a photo.</div>
+                </div>
+              )}
+
+              {photoPreview && (
+                <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <img src={photoPreview} alt="preview" style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: 8, border: '1px solid #e6f4ea' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <button type="button" onClick={() => { setFileBlob(null); setPhotoPreview(null) }} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '8px 10px', borderRadius: 8, cursor: 'pointer' }}>Remove</button>
+                    <a href={photoPreview} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#16a34a', fontWeight: 700, textDecoration: 'none' }}>Open full image</a>
+                  </div>
+                </div>
+              )}
+
+
+              {/* Camera overlay */}
+              {isCameraOpen && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+                  <div style={{ background: '#fff', padding: 12, borderRadius: 12, width: '92%', maxWidth: 420 }}>
+                    <div style={{ position: 'relative' }}>
+                      <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: 8, background: '#000' }} />
+                      <canvas ref={canvasRef} style={{ display: 'none' }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'space-between' }}>
+                      <button type="button" onClick={async () => {
+                        // capture
+                        if (!videoRef.current) return
+                        const v = videoRef.current
+                        const w = v.videoWidth || 640
+                        const h = v.videoHeight || 480
+                        const c = canvasRef.current!
+                        c.width = w
+                        c.height = h
+                        const ctx = c.getContext('2d')!
+                        ctx.drawImage(v, 0, 0, w, h)
+                        // Use toBlob to get a binary Blob for upload and also create preview
+                        c.toBlob((blob) => {
+                          if (!blob) return
+                          setFileBlob(blob)
+                          const previewUrl = URL.createObjectURL(blob)
+                          setPhotoPreview(previewUrl)
+                        }, 'image/jpeg', 0.75)
+                        // stop camera
+                        if (streamRef.current) {
+                          streamRef.current.getTracks().forEach((t: MediaStreamTrack) => t.stop())
+                          streamRef.current = null
+                        }
+                        setIsCameraOpen(false)
+                      }} style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#16a34a', color: '#fff', border: 'none', cursor: 'pointer' }}>Take Photo</button>
+                      <button type="button" onClick={() => {
+                        // cancel and stop camera
+                        if (streamRef.current) {
+                          streamRef.current.getTracks().forEach((t: MediaStreamTrack) => t.stop())
+                          streamRef.current = null
+                        }
+                        setIsCameraOpen(false)
+                      }} style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#fff', color: '#374151', border: '1px solid #e2e8f0', cursor: 'pointer' }}>Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             </div>
 
             <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #dcfce7, transparent)' }} />
@@ -167,9 +319,9 @@ export default function ResolveComplaint({ complaint }: Props) {
             {/* Actions */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Link href={`/complaints/${complaint.id}`} style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b', textDecoration: 'none' }}>← Cancel</Link>
-              <button type="submit" disabled={processing}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1.75rem', background: processing ? '#86efac' : 'linear-gradient(135deg, #16a34a, #15803d)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.9rem', cursor: processing ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(22,163,74,0.35)', fontFamily: "'DM Sans',sans-serif" }}>
-                {processing ? 'Resolving…' : (<>Resolve Complaint <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round"/></svg></>)}
+              <button type="submit" disabled={submitting}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1.75rem', background: submitting ? '#86efac' : 'linear-gradient(135deg, #16a34a, #15803d)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.9rem', cursor: submitting ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(22,163,74,0.35)', fontFamily: "'DM Sans',sans-serif" }}>
+                {submitting ? 'Resolving…' : (<>Resolve Complaint <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round"/></svg></>)}
               </button>
             </div>
           </form>

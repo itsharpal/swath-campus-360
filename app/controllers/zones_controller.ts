@@ -104,9 +104,12 @@ export default class ZonesController {
     return { qr }
   }
 
-  async resolveByQr({ params }: HttpContext) {
+  async resolveByQr({ params, response }: HttpContext) {
     const zone = await this.zoneService.resolveZoneByQr(params.qr)
 
-    return zone.serialize()
+    // Redirect to the public complaint creation page with prefilled ids
+    return response.redirect(
+      `/complaints/create?zoneId=${zone.id}&buildingId=${zone.buildingId}&floorId=${zone.floorId}`
+    )
   }
 }

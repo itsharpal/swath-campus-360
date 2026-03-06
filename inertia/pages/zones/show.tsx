@@ -38,9 +38,31 @@ export default function ShowZone() {
         title: "swal-campus-title",
         cancelButton: "swal-cancel-btn",
       },
-    }).then((result: any) => {
-      if (result.isConfirmed) {
-        router.visit(`/zones/${zone.id}/qr`)
+    }).then(async (result: any) => {
+      if (!result.isConfirmed) return
+
+      try {
+        const res = await fetch(`/zones/${zone.id}/qr`)
+        const json = await res.json()
+  const qr = json.qr
+  const targetUrl = `${window.location.origin}/zones/by-qr/${encodeURIComponent(qr)}`
+  // Primary QR image provider (reliable public API) with a Google Charts fallback
+  const googleUrl = `https://chart.googleapis.com/chart?cht=qr&chs=360x360&chl=${encodeURIComponent(targetUrl)}&chld=L|1`
+  const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(targetUrl)}`
+
+        Swal.fire({
+          title: 'QR Code generated',
+          html: `<div style="text-align:center">
+            <img src="${qrImg}" alt="QR code" style="width:300px;height:300px;border-radius:12px;border:1px solid #e6f4ea" onerror="this.onerror=null;this.src='${googleUrl}'"/>
+            <p style="margin-top:8px;color:#6b7280;font-size:0.92rem;">Scan this QR to open the complaint form (building & floor will be prefilled).</p>
+            <a href="${targetUrl}" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:6px;color:#16a34a;font-weight:700;text-decoration:none">Open link</a>
+          </div>`,
+          showConfirmButton: true,
+          confirmButtonText: 'Close',
+          customClass: { popup: 'swal-campus-popup' },
+        })
+      } catch (err) {
+        Swal.fire({ title: 'Error', text: 'Failed to generate QR. Try again.', icon: 'error', customClass: { popup: 'swal-campus-popup' } })
       }
     })
   }

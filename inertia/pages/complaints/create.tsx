@@ -1,10 +1,16 @@
-import { useForm } from '@inertiajs/react'
+import { useForm, usePage } from '@inertiajs/react'
 import { Link } from '@adonisjs/inertia/react'
 import Swal from 'sweetalert2'
+import React, { useEffect, useState } from 'react'
 
 interface Props {
-  zones:      { id: number; name: string }[]
+  zones:      { id: number; name: string; buildingId?: number; floorId?: number }[]
   categories: { id: number; name: string }[]
+  buildings?: { id: number; name: string }[]
+  floors?: { id: number; name: string; buildingId?: number }[]
+  prefillZoneId?: number
+  prefillBuildingId?: number
+  prefillFloorId?: number
 }
 
 const selectStyle = {
@@ -49,13 +55,25 @@ function blur(e: React.FocusEvent<any>) {
 }
 
 export default function CreateComplaint({ zones, categories }: Props) {
+  const page: any = usePage()
+  const buildings = page.props.buildings ?? []
+  const floors = page.props.floors ?? []
+
+  const prefillZoneId = Number(page.props.prefillZoneId ?? 0)
+  const prefillBuildingId = Number(page.props.prefillBuildingId ?? 0)
+  const prefillFloorId = Number(page.props.prefillFloorId ?? 0)
+
   const { data, setData, post, processing, errors } = useForm({
-    zoneId: 0,
+    zoneId: prefillZoneId || 0,
+    buildingId: prefillBuildingId || 0,
+    floorId: prefillFloorId || 0,
     categoryId: 0,
     description: '',
     photoUrl: '',
     isAnonymous: false,
   })
+
+  const [photoPreview, setPhotoPreview] = useState<string | null>(data.photoUrl || null)
 
   async function submit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -98,6 +116,32 @@ export default function CreateComplaint({ zones, categories }: Props) {
     })
   }
 
+  useEffect(() => {
+    // If a zone was prefilling building/floor, ensure they reflect the zone's relation
+    if (data.zoneId && (!data.buildingId || !data.floorId)) {
+      const z = zones.find((zz) => zz.id === Number(data.zoneId))
+      if (z) {
+        if (z.buildingId) setData('buildingId', z.buildingId)
+        if (z.floorId) setData('floorId', z.floorId)
+      }
+    }
+  }, [])
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result as string
+      setData('photoUrl', result)
+      setPhotoPreview(result)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // helper to filter floors by building
+  const filteredFloors = data.buildingId ? floors.filter((f: any) => Number(f.buildingId) === Number(data.buildingId)) : floors
+
   const charCount = data.description.length
 
   return (
@@ -133,6 +177,35 @@ export default function CreateComplaint({ zones, categories }: Props) {
           </div>
 
           <form onSubmit={submit} style={{ padding: '1.75rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+
+            {/* Building + Floor row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  <svg width="14" height="14" fill="none" stroke="#16a34a" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Building
+                </label>
+                <select value={data.buildingId} onChange={(e) => { setData('buildingId', Number(e.target.value)); setData('floorId', 0); }} onFocus={focus} onBlur={blur}
+                  style={{ ...selectStyle, borderColor: errors.buildingId ? '#fca5a5' : '#e2e8f0' }}>
+                  <option value={0}>Select Building…</option>
+                  {buildings.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+                {errors.buildingId && <p style={{ fontSize: '0.73rem', color: '#ef4444', marginTop: '4px' }}>{errors.buildingId}</p>}
+              </div>
+
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  <svg width="14" height="14" fill="none" stroke="#16a34a" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18"/></svg>
+                  Floor
+                </label>
+                <select value={data.floorId} onChange={(e) => setData('floorId', Number(e.target.value))} onFocus={focus} onBlur={blur}
+                  style={{ ...selectStyle, borderColor: errors.floorId ? '#fca5a5' : '#e2e8f0' }}>
+                  <option value={0}>Select Floor…</option>
+                  {filteredFloors.map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                </select>
+                {errors.floorId && <p style={{ fontSize: '0.73rem', color: '#ef4444', marginTop: '4px' }}>{errors.floorId}</p>}
+              </div>
+            </div>
 
             {/* Zone + Category row */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -184,21 +257,22 @@ export default function CreateComplaint({ zones, categories }: Props) {
               {errors.description && <p style={{ fontSize: '0.73rem', color: '#ef4444', marginTop: '4px' }}>{errors.description}</p>}
             </div>
 
-            {/* Photo URL */}
+            {/* Photo upload (optional) */}
             <div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                 <svg width="14" height="14" fill="none" stroke="#16a34a" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                Photo URL
+                Photo (optional)
                 <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: '#94a3b8', fontWeight: 400 }}>Optional</span>
               </label>
-              <input
-                type="text"
-                placeholder="https://example.com/photo.jpg"
-                value={data.photoUrl}
-                onChange={(e) => setData('photoUrl', e.target.value)}
-                onFocus={focus} onBlur={blur}
-                style={inputStyle}
-              />
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input type="file" accept="image/*" onChange={handleFileChange} />
+                {photoPreview && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <img src={photoPreview} alt="preview" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: '1px solid #e6f4ea' }} />
+                    <button type="button" onClick={() => { setData('photoUrl', ''); setPhotoPreview(null) }} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '6px 8px', borderRadius: 8, cursor: 'pointer' }}>Remove</button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Anonymous toggle */}
