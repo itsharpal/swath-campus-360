@@ -18,6 +18,7 @@ interface Complaint {
 
 interface Props {
   complaint: Complaint
+  canManageActions: boolean
 }
 
 const statusStyle: Record<string, { bg: string; color: string; border: string; dot: string }> = {
@@ -34,7 +35,7 @@ const priorityStyle: Record<string, { bg: string; color: string }> = {
   critical: { bg: 'rgba(139,92,246,0.08)', color: '#7c3aed' },
 }
 
-export default function ComplaintShow({ complaint }: Props) {
+export default function ComplaintShow({ complaint, canManageActions }: Props) {
   const ss = statusStyle[complaint.status]   ?? { bg: '#f1f5f9', color: '#64748b', border: '#e2e8f0', dot: '#94a3b8' }
   const ps = priorityStyle[complaint.priority] ?? { bg: 'rgba(100,116,139,0.08)', color: '#64748b' }
 
@@ -135,14 +136,14 @@ export default function ComplaintShow({ complaint }: Props) {
 
         {/* Action buttons */}
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          {complaint.status === 'open' && (
+          {canManageActions && complaint.status === 'open' && (
             <button onClick={markInProgress}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1.5rem', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', boxShadow: '0 4px 14px rgba(59,130,246,0.35)', fontFamily: "'DM Sans',sans-serif" }}>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
               Mark In Progress
             </button>
           )}
-          {complaint.status !== 'resolved' && (
+          {canManageActions && complaint.status !== 'resolved' && (
             <Link href={`/complaints/${complaint.id}/resolve`}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1.5rem', background: 'linear-gradient(135deg, #16a34a, #15803d)', color: '#fff', borderRadius: '12px', fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none', boxShadow: '0 4px 14px rgba(22,163,74,0.35)' }}>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round"/></svg>

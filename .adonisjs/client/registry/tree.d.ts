@@ -13,6 +13,7 @@ export interface ApiDefinition {
   }
   profile: {
     show: typeof routes['profile.show']
+    update: typeof routes['profile.update']
   }
   dashboard: {
     admin: typeof routes['dashboard.admin']

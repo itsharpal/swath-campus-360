@@ -5,6 +5,10 @@ import { ReactElement, useEffect } from 'react'
 import { Form, Link } from '@adonisjs/inertia/react'
 
 export default function Layout({ children }: { children: ReactElement<Data.SharedProps> }) {
+  const roleId = Number((children.props.user as any)?.roleId ?? 0)
+  const isAdmin = roleId === 1
+  const canSeeSupervisorDashboard = roleId !== 1 && roleId !== 4 && roleId !== 5
+
   useEffect(() => {
     toast.dismiss()
   }, [usePage().url])
@@ -222,9 +226,19 @@ export default function Layout({ children }: { children: ReactElement<Data.Share
           <nav className="sc-nav">
             {children.props.user ? (
               <>
-                <Link route="complaints.create" className="sc-nav-link">File Complaint</Link>
+                {!isAdmin && (
+                  <Link route="complaints.create" className="sc-nav-link">File Complaint</Link>
+                )}
                 <Link route="complaints.index" className="sc-nav-link">Public Complaints</Link>
-                <Link route="complaints.my" className="sc-nav-link">My Complaints</Link>
+                {!isAdmin && (
+                  <Link route="complaints.my" className="sc-nav-link">My Complaints</Link>
+                )}
+                {isAdmin && (
+                  <Link href="/admin/dashboard" className="sc-nav-link">Admin Dashboard</Link>
+                )}
+                {canSeeSupervisorDashboard && (
+                  <Link href="/supervisor/dashboard" className="sc-nav-link">Supervisor Dashboard</Link>
+                )}
                 <Link route="profile.show" className="sc-nav-link">My Profile</Link>
 
                 <span className="sc-user-badge">{children.props.user.initials}</span>

@@ -5,10 +5,10 @@ import router from '@adonisjs/core/services/router'
 import { DateTime } from 'luxon'
 import { appUrl } from '#config/app'
 import mail from '@adonisjs/mail/services/main'
+import { loginValidator, registerValidator } from '#validators/auth'
 
 export default class AuthController {
   private readonly allowedRoleNames = ['student', 'teacher']
-  private readonly scetEmailRegex = /^[a-z0-9]+(?:\.[a-z0-9]+)*@scet\.ac\.in$/i
   private readonly verificationPurpose = 'email_verification'
 
   /*
@@ -26,12 +26,12 @@ export default class AuthController {
   |-----------------------------------------
   */
   async login({ request, auth, response, session }: HttpContext) {
-    const { email, password } = request.only(['email', 'password'])
-    const normalizedEmail = email.trim().toLowerCase()
+    const data = await request.validateUsing(loginValidator)
+    const normalizedEmail = data.email.trim().toLowerCase()
 
     let user: User
     try {
-      user = await User.verifyCredentials(normalizedEmail, password)
+      user = await User.verifyCredentials(normalizedEmail, data.password)
     } catch {
       session.flash('error', 'Invalid credentials')
       return response.redirect().back()
@@ -79,26 +79,9 @@ export default class AuthController {
   |-----------------------------------------
   */
   async register({ request, response, session }: HttpContext) {
-    const data = request.only([
-      'name',
-      'email',
-      'password',
-      'passwordConfirmation',
-      'roleId',
-      'phone',
-    ])
+    const data = await request.validateUsing(registerValidator)
 
     const normalizedEmail = data.email.trim().toLowerCase()
-
-    if (!this.scetEmailRegex.test(normalizedEmail)) {
-      session.flash('error', 'Only @scet.ac.in email addresses are allowed')
-      return response.redirect().back()
-    }
-
-    if (data.password !== data.passwordConfirmation) {
-      session.flash('error', 'Password and confirm password do not match')
-      return response.redirect().back()
-    }
 
     const allowedRoles = await Role.query().whereIn('name', this.allowedRoleNames)
     const allowedRoleIds = allowedRoles.map((role) => role.id)
@@ -141,18 +124,32 @@ export default class AuthController {
     return response.redirect('/login')
   }
 
-  async verifyEmail({ request, params, response, session }: HttpContext) {
+  async verifyEmail({ request, params, inertia }: HttpContext) {
     if (!request.hasValidSignature(this.verificationPurpose)) {
-      session.flash('error', 'Verification link is invalid or expired')
-      return response.redirect('/login')
+      return inertia.render('auth/verify_email' as any, {
+        status: 'error',
+        title: 'Verification Link Invalid',
+        message: 'This verification link is invalid or has expired. Please login to request a new verification email.',
+      })
     }
 
     const userId = Number(params.id)
     const user = await User.find(userId)
 
     if (!user) {
-      session.flash('error', 'User not found')
-      return response.redirect('/login')
+      return inertia.render('auth/verify_email' as any, {
+        status: 'error',
+        title: 'User Not Found',
+        message: 'We could not find an account for this verification link.',
+      })
+    }
+
+    if (user.emailVerifiedAt) {
+      return inertia.render('auth/verify_email' as any, {
+        status: 'info',
+        title: 'Email Already Verified',
+        message: 'Your email address is already verified. You can login normally.',
+      })
     }
 
     if (!user.emailVerifiedAt) {
@@ -160,8 +157,11 @@ export default class AuthController {
       await user.save()
     }
 
-    session.flash('success', 'Email verified successfully. You can now login')
-    return response.redirect('/login')
+    return inertia.render('auth/verify_email' as any, {
+      status: 'success',
+      title: 'Email Verified Successfully',
+      message: 'Your email has been verified. You can now login to your account.',
+    })
   }
 
   /*
@@ -190,10 +190,10 @@ export default class AuthController {
       case 'supervisor':
         return '/supervisor/dashboard'
 
-      // Teacher/student users can file and track complaints.
+      // Teacher/student users land on public complaint listing.
       case 'teacher':
       case 'student':
-        return '/complaints/create'
+        return '/complaints'
 
       default:
         return '/'

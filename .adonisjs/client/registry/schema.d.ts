@@ -33,10 +33,10 @@ export interface Registry {
     methods: ["POST"]
     pattern: '/login'
     types: {
-      body: {}
+      body: ExtractBody<InferInput<(typeof import('#validators/auth').loginValidator)>>
       paramsTuple: []
       params: {}
-      query: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/auth').loginValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['login']>>>
     }
   }
@@ -55,10 +55,10 @@ export interface Registry {
     methods: ["POST"]
     pattern: '/register'
     types: {
-      body: {}
+      body: ExtractBody<InferInput<(typeof import('#validators/auth').registerValidator)>>
       paramsTuple: []
       params: {}
-      query: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/auth').registerValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['register']>>>
     }
   }
@@ -86,6 +86,17 @@ export interface Registry {
   }
   'profile.show': {
     methods: ["GET","HEAD"]
+    pattern: '/profile'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: unknown
+    }
+  }
+  'profile.update': {
+    methods: ["PUT"]
     pattern: '/profile'
     types: {
       body: {}

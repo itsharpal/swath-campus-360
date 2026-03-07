@@ -21,15 +21,17 @@ export default function Register({ roles }: Props) {
 
   useEffect(() => {
     if (flashError) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Registration Failed',
-        text: flashError,
-        confirmButtonColor: '#16a34a',
-        background: '#f0fdf4',
-        color: '#14532d',
-        iconColor: '#dc2626',
-      })
+        if (typeof Swal !== 'undefined' && typeof Swal.fire === 'function') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Registration Failed',
+            text: flashError,
+            confirmButtonColor: '#16a34a',
+            background: '#f0fdf4',
+            color: '#14532d',
+            iconColor: '#dc2626',
+          })
+        }
     }
   }, [flashError])
 
@@ -37,15 +39,17 @@ export default function Register({ roles }: Props) {
     e.preventDefault()
     post('/register', {
       onSuccess: () => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Account Created!',
-          text: 'Welcome to Swachh Campus.',
-          confirmButtonColor: '#16a34a',
-          background: '#f0fdf4',
-          color: '#14532d',
-          iconColor: '#16a34a',
-        })
+        if (typeof Swal !== 'undefined' && typeof Swal.fire === 'function') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Registration Successful',
+            text: 'We sent a verification link to your email. Please verify your email before logging in.',
+            confirmButtonColor: '#16a34a',
+            background: '#f0fdf4',
+            color: '#14532d',
+            iconColor: '#16a34a',
+          })
+        }
       },
     })
   }

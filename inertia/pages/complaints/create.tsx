@@ -1,7 +1,7 @@
 import { useForm, usePage } from '@inertiajs/react'
 import { Link } from '@adonisjs/inertia/react'
 import Swal from 'sweetalert2'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface Props {
   zones:      { id: number; name: string; buildingId?: number; floorId?: number }[]
@@ -69,11 +69,12 @@ export default function CreateComplaint({ zones, categories }: Props) {
     floorId: prefillFloorId || 0,
     categoryId: 0,
     description: '',
-    photoUrl: '',
-    isAnonymous: false,
+    complaintPhoto: null as File | null,
   })
 
-  const [photoPreview, setPhotoPreview] = useState<string | null>(data.photoUrl || null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [photoFileName, setPhotoFileName] = useState<string>('')
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   async function submit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -94,6 +95,7 @@ export default function CreateComplaint({ zones, categories }: Props) {
     if (!result.isConfirmed) return
 
     post('/complaints', {
+      forceFormData: true,
       onSuccess: () => Swal.fire({
         title: 'Complaint Submitted!',
         text: 'Your complaint has been registered successfully.',
@@ -130,17 +132,30 @@ export default function CreateComplaint({ zones, categories }: Props) {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    setPhotoFileName(file.name)
+
     const reader = new FileReader()
     reader.onload = () => {
       const result = reader.result as string
-      setData('photoUrl', result)
+      setData('complaintPhoto', file)
       setPhotoPreview(result)
     }
     reader.readAsDataURL(file)
   }
 
-  // helper to filter floors by building
-  const filteredFloors = data.buildingId ? floors.filter((f: any) => Number(f.buildingId) === Number(data.buildingId)) : floors
+  // Helper to filter floors by selected building.
+  const filteredFloors = data.buildingId
+    ? floors.filter((f: any) => Number(f.buildingId) === Number(data.buildingId))
+    : floors
+
+  // Helper to filter zones by selected building + floor.
+  const filteredZones = zones.filter((z) => {
+    const buildingMatches =
+      Number(data.buildingId) > 0 ? Number(z.buildingId) === Number(data.buildingId) : true
+    const floorMatches = Number(data.floorId) > 0 ? Number(z.floorId) === Number(data.floorId) : true
+
+    return buildingMatches && floorMatches
+  })
 
   const charCount = data.description.length
 
@@ -185,7 +200,15 @@ export default function CreateComplaint({ zones, categories }: Props) {
                   <svg width="14" height="14" fill="none" stroke="#16a34a" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   Building
                 </label>
-                <select value={data.buildingId} onChange={(e) => { setData('buildingId', Number(e.target.value)); setData('floorId', 0); }} onFocus={focus} onBlur={blur}
+                <select
+                  value={data.buildingId}
+                  onChange={(e) => {
+                    setData('buildingId', Number(e.target.value))
+                    setData('floorId', 0)
+                    setData('zoneId', 0)
+                  }}
+                  onFocus={focus}
+                  onBlur={blur}
                   style={{ ...selectStyle, borderColor: errors.buildingId ? '#fca5a5' : '#e2e8f0' }}>
                   <option value={0}>Select Building…</option>
                   {buildings.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -198,7 +221,14 @@ export default function CreateComplaint({ zones, categories }: Props) {
                   <svg width="14" height="14" fill="none" stroke="#16a34a" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18"/></svg>
                   Floor
                 </label>
-                <select value={data.floorId} onChange={(e) => setData('floorId', Number(e.target.value))} onFocus={focus} onBlur={blur}
+                <select
+                  value={data.floorId}
+                  onChange={(e) => {
+                    setData('floorId', Number(e.target.value))
+                    setData('zoneId', 0)
+                  }}
+                  onFocus={focus}
+                  onBlur={blur}
                   style={{ ...selectStyle, borderColor: errors.floorId ? '#fca5a5' : '#e2e8f0' }}>
                   <option value={0}>Select Floor…</option>
                   {filteredFloors.map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -214,10 +244,17 @@ export default function CreateComplaint({ zones, categories }: Props) {
                   <svg width="14" height="14" fill="none" stroke="#16a34a" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
                   Zone
                 </label>
-                <select value={data.zoneId} onChange={(e) => setData('zoneId', Number(e.target.value))} onFocus={focus} onBlur={blur}
+                <select
+                  value={data.zoneId}
+                  onChange={(e) => setData('zoneId', Number(e.target.value))}
+                  onFocus={focus}
+                  onBlur={blur}
+                  disabled={!data.buildingId || !data.floorId}
                   style={{ ...selectStyle, borderColor: errors.zoneId ? '#fca5a5' : '#e2e8f0' }}>
-                  <option value={0}>Select Zone…</option>
-                  {zones.map((z) => <option key={z.id} value={z.id}>{z.name}</option>)}
+                  <option value={0}>
+                    {data.buildingId && data.floorId ? 'Select Zone…' : 'Select building and floor first…'}
+                  </option>
+                  {filteredZones.map((z) => <option key={z.id} value={z.id}>{z.name}</option>)}
                 </select>
                 {errors.zoneId && <p style={{ fontSize: '0.73rem', color: '#ef4444', marginTop: '4px' }}>{errors.zoneId}</p>}
               </div>
@@ -265,25 +302,38 @@ export default function CreateComplaint({ zones, categories }: Props) {
                 <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: '#94a3b8', fontWeight: 400 }}>Optional</span>
               </label>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <input type="file" accept="image/*" onChange={handleFileChange} />
+                <input ref={fileInputRef} id="complaint-photo" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+                <label htmlFor="complaint-photo" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#15803d', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
+                  Choose File
+                </label>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{photoFileName || 'No file selected'}</span>
                 {photoPreview && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <img src={photoPreview} alt="preview" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: '1px solid #e6f4ea' }} />
-                    <button type="button" onClick={() => { setData('photoUrl', ''); setPhotoPreview(null) }} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '6px 8px', borderRadius: 8, cursor: 'pointer' }}>Remove</button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setData('complaintPhoto', null)
+                        setPhotoPreview(null)
+                        setPhotoFileName('')
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = ''
+                        }
+                      }}
+                      style={{
+                        background: '#fff1f2',
+                        border: '1px solid #fecdd3',
+                        color: '#be123c',
+                        fontWeight: 700,
+                        padding: '6px 10px',
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Remove
+                    </button>
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* Anonymous toggle */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.2rem', borderRadius: '10px', background: '#f8fafc', border: '1.5px solid #e2e8f0' }}>
-              <div>
-                <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600, color: '#374151' }}>Report Anonymously</p>
-                <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>Your identity will not be revealed to the review team.</p>
-              </div>
-              <div onClick={() => setData('isAnonymous', !data.isAnonymous)}
-                style={{ width: '44px', height: '24px', borderRadius: '12px', cursor: 'pointer', background: data.isAnonymous ? '#16a34a' : '#cbd5e1', transition: 'background 0.2s', position: 'relative', flexShrink: 0 }}>
-                <div style={{ position: 'absolute', top: '3px', left: data.isAnonymous ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
               </div>
             </div>
 

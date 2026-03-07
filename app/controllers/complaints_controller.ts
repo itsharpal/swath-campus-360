@@ -23,6 +23,15 @@ import {
 export default class ComplaintsController {
   constructor(private complaintService: ComplaintService) {}
 
+  private canManageComplaint(user?: { id?: number; roleId?: number | null }) {
+    if (!user?.id) {
+      return false
+    }
+
+    const roleId = Number(user.roleId ?? 0)
+    return roleId !== 4 && roleId !== 5
+  }
+
   /**
    * GET /complaints/create
    */
@@ -63,6 +72,7 @@ export default class ComplaintsController {
     const complaintRecords = await this.complaintService.list({
       rankPublic: true,
       viewerUserId: auth.user?.id,
+      statuses: ['open', 'in_progress', 'overdue'],
     })
 
     const complaints = complaintRecords.map((complaint) => ({
@@ -83,14 +93,16 @@ export default class ComplaintsController {
   /**
    * GET /complaints/:id
    */
-  async show({ params, inertia }: HttpContext) {
+  async show({ params, inertia, auth }: HttpContext) {
     const complaintRecord = await this.complaintService.findById(Number(params.id))
     const complaint = complaintRecord.serialize()
+    const canManageActions = this.canManageComplaint(auth.user)
 
     return inertia.render(
       'complaints/show' as any,
       {
         complaint,
+        canManageActions,
       } as any
     )
   }
@@ -98,8 +110,14 @@ export default class ComplaintsController {
   /**
    * GET /complaints/:id/resolve
    */
-  async showResolve({ params, inertia }: HttpContext) {
+  async showResolve({ params, inertia, auth, response, session }: HttpContext) {
     const complaintRecord = await this.complaintService.findById(Number(params.id))
+
+    if (!this.canManageComplaint(auth.user)) {
+      session.flash('error', 'Only non-student and non-teacher roles can resolve this complaint.')
+      return response.redirect(`/complaints/${params.id}`)
+    }
+
     const complaint = complaintRecord.serialize()
 
     return inertia.render(
@@ -114,13 +132,49 @@ export default class ComplaintsController {
    * POST /complaints
    */
   async store({ request, auth, response, session }: HttpContext) {
-    const payload = await request.validateUsing(createComplaintValidator)
+    if (!auth.user) {
+      session.flash('error', 'Please login to submit a complaint.')
+      return response.redirect('/login')
+    }
 
-    await this.complaintService.create(payload, auth.user?.id ?? null)
+    const payload = await request.validateUsing(createComplaintValidator)
+    const uploadedFile = request.file('complaintPhoto', {
+      size: '10mb',
+      extnames: ['jpg', 'jpeg', 'png', 'webp'],
+    })
+
+    let photoUrl: string | null = null
+
+    if (uploadedFile) {
+      if (!uploadedFile.isValid) {
+        session.flash('error', 'Invalid complaint image. Please upload a JPG, PNG, or WEBP file up to 10MB.')
+        return response.redirect().back()
+      }
+
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'complaints')
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true })
+      }
+
+      const timestamp = Date.now()
+      const clientName = uploadedFile.clientName || `complaint_${timestamp}`
+      const safeName = `${timestamp}_${clientName.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+
+      await uploadedFile.move(uploadsDir, { name: safeName })
+      photoUrl = path.posix.join('/uploads/complaints', safeName)
+    }
+
+    await this.complaintService.create(
+      {
+        ...payload,
+        photoUrl,
+      },
+      auth.user.id
+    )
 
     session.flash('success', 'Complaint submitted successfully')
 
-    return response.redirect().back()
+    return response.redirect('/complaints')
   }
 
   /**
@@ -165,8 +219,13 @@ export default class ComplaintsController {
   /**
    * PUT /complaints/:id/status
    */
-  async markInProgress({ params, request, auth, response }: HttpContext) {
+  async markInProgress({ params, request, auth, response, session }: HttpContext) {
     await request.validateUsing(updateStatusValidator)
+
+    if (!this.canManageComplaint(auth.user)) {
+      session.flash('error', 'Only non-student and non-teacher roles can mark this complaint in progress.')
+      return response.redirect(`/complaints/${params.id}`)
+    }
 
     await this.complaintService.markInProgress(Number(params.id), auth.user!.id)
 
@@ -176,7 +235,23 @@ export default class ComplaintsController {
   /**
    * PUT /complaints/:id/resolve
    */
-  async resolve({ params, request, response, session }: HttpContext) {
+  async resolve({ params, request, response, session, auth }: HttpContext) {
+    if (!this.canManageComplaint(auth.user)) {
+      const isXhr =
+        String(request.header('x-requested-with') || '').toLowerCase() === 'xmlhttprequest'
+      const isInertia = !!request.header('x-inertia')
+
+      if (isXhr || isInertia) {
+        return response.status(403).json({
+          success: false,
+          message: 'Only non-student and non-teacher roles can resolve this complaint.',
+        })
+      }
+
+      session.flash('error', 'Only non-student and non-teacher roles can resolve this complaint.')
+      return response.redirect(`/complaints/${params.id}`)
+    }
+
     const payload = await request.validateUsing(resolveComplaintValidator)
     // Handle uploaded file (multipart/form-data). Field name: resolutionPhoto
     const uploadedFile = request.file('resolutionPhoto', {
@@ -231,9 +306,9 @@ export default class ComplaintsController {
    * POST /complaints/:id/upvote
    */
   async upvote({ params, auth, response, session }: HttpContext) {
-    await this.complaintService.upvote(Number(params.id), Number(auth.user!.id))
+    const result = await this.complaintService.upvote(Number(params.id), Number(auth.user!.id))
 
-    session.flash('success', 'Upvote recorded')
+    session.flash('success', result.hasUpvoted ? 'Upvote recorded' : 'Upvote removed')
     return response.redirect().back()
   }
 }

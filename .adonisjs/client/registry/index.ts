@@ -54,6 +54,12 @@ const routes = {
     tokens: [{"old":"/profile","type":0,"val":"profile","end":""}],
     types: placeholder as Registry['profile.show']['types'],
   },
+  'profile.update': {
+    methods: ["PUT"],
+    pattern: '/profile',
+    tokens: [{"old":"/profile","type":0,"val":"profile","end":""}],
+    types: placeholder as Registry['profile.update']['types'],
+  },
   'dashboard.admin': {
     methods: ["GET","HEAD"],
     pattern: '/admin/dashboard',

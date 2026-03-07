@@ -47,6 +47,7 @@ router.get('/email/verify/:id', [AuthController, 'verifyEmail']).as('auth.verify
 
 router.post('/logout', [AuthController, 'logout']).use(middleware.auth()).as('auth.logout')
 router.get('/profile', [ProfileController, 'show']).use(middleware.auth()).as('profile.show')
+router.put('/profile', [ProfileController, 'update']).use(middleware.auth()).as('profile.update')
 
 // Dashboards
 router.get('/admin/dashboard', [DashboardController, 'admin']).use(middleware.auth())
@@ -74,7 +75,7 @@ router
 // Complaints
 router.get('/complaints', [ComplaintsController, 'index'])
 
-router.get('/complaints/create', [ComplaintsController, 'create'])
+router.get('/complaints/create', [ComplaintsController, 'create']).use(middleware.auth())
 
 router.get('/complaints/my', [ComplaintsController, 'my']).use(middleware.auth())
 
@@ -82,7 +83,7 @@ router.get('/complaints/track/:code', [ComplaintsController, 'track'])
 
 router.get('/complaints/:id/resolve', [ComplaintsController, 'showResolve']).use(middleware.auth())
 
-router.post('/complaints', [ComplaintsController, 'store'])
+router.post('/complaints', [ComplaintsController, 'store']).use(middleware.auth())
 
 router.post('/complaints/:id/upvote', [ComplaintsController, 'upvote']).use(middleware.auth())
 

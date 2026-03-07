@@ -1,7 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
-
-import DashboardService from '#services/dashboard_service'
+import DashboardService from '../services/dashboard_service.js'
 
 @inject()
 export default class DashboardController {

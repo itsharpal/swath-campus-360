@@ -6,7 +6,6 @@ interface Complaint {
   id: number
   complaintCode: string
   status: string
-  priority: string
   createdAt: string
   zone?: { name: string }
   category?: { name: string }
@@ -26,30 +25,59 @@ interface SharedPageProps {
   }
 }
 
+type StatusTab = 'all' | 'open' | 'in_progress' | 'overdue'
+
 const statusStyle: Record<string, { bg: string; color: string; border: string }> = {
   open:        { bg: '#fef3c7', color: '#b45309', border: '#fde68a' },
   in_progress: { bg: '#dbeafe', color: '#1d4ed8', border: '#bfdbfe' },
-  resolved:    { bg: '#d1fae5', color: '#047857', border: '#a7f3d0' },
-  closed:      { bg: '#f1f5f9', color: '#64748b', border: '#e2e8f0' },
-}
-
-const priorityStyle: Record<string, { bg: string; color: string }> = {
-  low:      { bg: 'rgba(22,163,74,0.08)',   color: '#15803d' },
-  medium:   { bg: 'rgba(245,158,11,0.08)',  color: '#b45309' },
-  high:     { bg: 'rgba(239,68,68,0.08)',   color: '#b91c1c' },
-  critical: { bg: 'rgba(139,92,246,0.08)',  color: '#7c3aed' },
+  overdue:    { bg: '#fee2e2', color: '#b91c1c', border: '#fecaca' },
 }
 
 export default function ComplaintsIndex({ complaints }: Props) {
   const { props } = usePage<SharedPageProps>()
   const [pendingUpvoteId, setPendingUpvoteId] = useState<number | null>(null)
+  const [statusTab, setStatusTab] = useState<StatusTab>('all')
+  const [overdueFirst, setOverdueFirst] = useState(false)
 
   const open       = complaints.filter((c) => c.status === 'open').length
+  const inProgress = complaints.filter((c) => c.status === 'in_progress').length
+  const overdue = complaints.filter((c) => c.status === 'overdue').length
   const teacherPriorityCount = complaints.filter((c) => c.isTeacherPriority).length
   const totalUpvotes = useMemo(
     () => complaints.reduce((sum, complaint) => sum + Number(complaint.upvoteCount ?? 0), 0),
     [complaints]
   )
+
+  const displayedComplaints = useMemo(() => {
+    const filtered = complaints.filter((complaint) => {
+      if (statusTab === 'all') return true
+      return complaint.status === statusTab
+    })
+
+    if (!overdueFirst) {
+      return filtered
+    }
+
+    return filtered
+      .map((complaint, index) => ({ complaint, index }))
+      .sort((a, b) => {
+        const aOverdueRank = a.complaint.status === 'overdue' ? 0 : 1
+        const bOverdueRank = b.complaint.status === 'overdue' ? 0 : 1
+        if (aOverdueRank !== bOverdueRank) {
+          return aOverdueRank - bOverdueRank
+        }
+
+        return a.index - b.index
+      })
+      .map((entry) => entry.complaint)
+  }, [complaints, overdueFirst, statusTab])
+
+  const statusTabs: Array<{ key: StatusTab; label: string; count: number }> = [
+    { key: 'all', label: 'All Active', count: complaints.length },
+    { key: 'open', label: 'Open', count: open },
+    { key: 'in_progress', label: 'In Progress', count: inProgress },
+    { key: 'overdue', label: 'Overdue', count: overdue },
+  ]
 
   function handleUpvote(complaintId: number) {
     if (!props.user) {
@@ -118,23 +146,65 @@ export default function ComplaintsIndex({ complaints }: Props) {
           <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Complaint Registry</h2>
-              <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '2px 0 0' }}>{complaints.length} total entries</p>
+              <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '2px 0 0' }}>
+                {displayedComplaints.length} shown of {complaints.length} active entries
+              </p>
             </div>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a', boxShadow: '0 0 0 3px rgba(22,163,74,0.2)' }} />
+            <button
+              type="button"
+              onClick={() => setOverdueFirst((value) => !value)}
+              style={{
+                border: overdueFirst ? '1px solid #fca5a5' : '1px solid #e2e8f0',
+                background: overdueFirst ? '#fef2f2' : '#f8fafc',
+                color: overdueFirst ? '#b91c1c' : '#475569',
+                borderRadius: '999px',
+                padding: '6px 12px',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              {overdueFirst ? 'Overdue First: On' : 'Overdue First: Off'}
+            </button>
+          </div>
+
+          <div style={{ padding: '0.8rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            {statusTabs.map((tab) => {
+              const isActive = statusTab === tab.key
+
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setStatusTab(tab.key)}
+                  style={{
+                    border: isActive ? '1px solid #86efac' : '1px solid #e2e8f0',
+                    background: isActive ? '#f0fdf4' : '#ffffff',
+                    color: isActive ? '#15803d' : '#475569',
+                    borderRadius: '999px',
+                    padding: '6px 12px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {tab.label} ({tab.count})
+                </button>
+              )
+            })}
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {['Code', 'Zone', 'Category', 'Status', 'Priority', 'Votes', ''].map((h) => (
+                  {['Code', 'Zone', 'Category', 'Status', 'Votes', ''].map((h) => (
                     <th key={h} style={{ padding: '0.85rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {complaints.map((c, i) => {
+                {displayedComplaints.map((c, i) => {
                   const ss = statusStyle[c.status]   ?? { bg: '#f1f5f9', color: '#64748b', border: '#e2e8f0' }
-                  const ps = priorityStyle[c.priority] ?? { bg: 'rgba(100,116,139,0.08)', color: '#64748b' }
                   return (
                     <tr key={c.id}
                       style={{ borderTop: '1px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafcff', transition: 'background 0.15s' }}
@@ -142,16 +212,8 @@ export default function ComplaintsIndex({ complaints }: Props) {
                       onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? '#fff' : '#fafcff'}
                     >
                       <td style={{ padding: '1rem 1.5rem' }}>
-                        <span style={{ fontFamily: 'monospace', fontSize: '0.82rem', background: '#f0fdf4', color: '#16a34a', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, border: '1px solid #bbf7d0' }}>{c.complaintCode}</span>
-                      </td>
-                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.88rem', color: '#374151' }}>{c.zone?.name ?? '—'}</td>
-                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.88rem', color: '#374151' }}>{c.category?.name ?? '—'}</td>
-                      <td style={{ padding: '1rem 1.5rem' }}>
-                        <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: '20px', textTransform: 'capitalize', background: ss.bg, color: ss.color, border: `1px solid ${ss.border}` }}>{c.status.replace('_', ' ')}</span>
-                      </td>
-                      <td style={{ padding: '1rem 1.5rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: '20px', textTransform: 'capitalize', background: ps.bg, color: ps.color }}>{c.priority}</span>
+                          <span style={{ fontFamily: 'monospace', fontSize: '0.82rem', background: '#f0fdf4', color: '#16a34a', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, border: '1px solid #bbf7d0' }}>{c.complaintCode}</span>
                           {c.isTeacherPriority && (
                             <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '3px 8px', borderRadius: '999px', background: 'rgba(124,58,237,0.12)', color: '#6d28d9' }}>
                               Teacher
@@ -159,10 +221,15 @@ export default function ComplaintsIndex({ complaints }: Props) {
                           )}
                         </div>
                       </td>
+                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.88rem', color: '#374151' }}>{c.zone?.name ?? '—'}</td>
+                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.88rem', color: '#374151' }}>{c.category?.name ?? '—'}</td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: '20px', textTransform: 'capitalize', background: ss.bg, color: ss.color, border: `1px solid ${ss.border}` }}>{c.status.replace('_', ' ')}</span>
+                      </td>
                       <td style={{ padding: '1rem 1.5rem' }}>
                         <button
                           type="button"
-                          disabled={pendingUpvoteId === c.id || c.hasUpvoted}
+                          disabled={pendingUpvoteId === c.id}
                           onClick={() => handleUpvote(c.id)}
                           style={{
                             display: 'inline-flex',
@@ -175,7 +242,7 @@ export default function ComplaintsIndex({ complaints }: Props) {
                             color: c.hasUpvoted ? '#1d4ed8' : '#1e40af',
                             fontSize: '0.75rem',
                             fontWeight: 700,
-                            cursor: pendingUpvoteId === c.id || c.hasUpvoted ? 'not-allowed' : 'pointer',
+                            cursor: pendingUpvoteId === c.id ? 'not-allowed' : 'pointer',
                             opacity: pendingUpvoteId === c.id ? 0.7 : 1,
                           }}
                         >
@@ -194,7 +261,7 @@ export default function ComplaintsIndex({ complaints }: Props) {
                 })}
               </tbody>
             </table>
-            {complaints.length === 0 && <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8', fontSize: '0.9rem' }}>No complaints found.</div>}
+            {displayedComplaints.length === 0 && <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8', fontSize: '0.9rem' }}>No complaints found for this filter.</div>}
           </div>
         </div>
       </div>

@@ -51,7 +51,16 @@ export interface ComplaintHeatmap {
 }
 
 interface Props {
-  complaintHeatmap: ComplaintHeatmap
+  complaintHeatmap?: ComplaintHeatmap
+}
+
+const EMPTY_HEATMAP: ComplaintHeatmap = {
+  totalHistoricalComplaints: 0,
+  maxZoneComplaints: 0,
+  buildings: [],
+  mapCenter: { lat: 21.1820896979923, lng: 72.80859569161564 },
+  mapZoom: 19,
+  mapPoints: [],
 }
 
 function FitMapBounds({ points }: { points: HeatmapMapPoint[] }) {
@@ -87,24 +96,25 @@ function getHaloRadius(complaintCount: number, maxZoneComplaints: number) {
 }
 
 export default function CampusHeatmap({ complaintHeatmap }: Props) {
+  const normalizedHeatmap = complaintHeatmap ?? EMPTY_HEATMAP
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  const mapPoints = complaintHeatmap.mapPoints
-  const center: [number, number] = [complaintHeatmap.mapCenter.lat, complaintHeatmap.mapCenter.lng]
+  const mapPoints = normalizedHeatmap.mapPoints
+  const center: [number, number] = [normalizedHeatmap.mapCenter.lat, normalizedHeatmap.mapCenter.lng]
 
   const totalFloors = useMemo(() => {
-    return complaintHeatmap.buildings.reduce((sum, building) => sum + building.floors.length, 0)
-  }, [complaintHeatmap.buildings])
+    return normalizedHeatmap.buildings.reduce((sum, building) => sum + building.floors.length, 0)
+  }, [normalizedHeatmap.buildings])
 
   const totalZones = useMemo(() => {
-    return complaintHeatmap.buildings.reduce((sum, building) => {
+    return normalizedHeatmap.buildings.reduce((sum, building) => {
       return sum + building.floors.reduce((floorSum, floor) => floorSum + floor.zones.length, 0)
     }, 0)
-  }, [complaintHeatmap.buildings])
+  }, [normalizedHeatmap.buildings])
 
   return (
     <section
@@ -163,7 +173,7 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
               padding: '4px 10px',
             }}
           >
-            Complaints: {complaintHeatmap.totalHistoricalComplaints}
+            Complaints: {normalizedHeatmap.totalHistoricalComplaints}
           </span>
           <span
             style={{
@@ -176,7 +186,7 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
               padding: '4px 10px',
             }}
           >
-            Peak Zone: {complaintHeatmap.maxZoneComplaints}
+            Peak Zone: {normalizedHeatmap.maxZoneComplaints}
           </span>
         </div>
       </div>
@@ -185,7 +195,7 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
         {isClient ? (
           <MapContainer
             center={center}
-            zoom={complaintHeatmap.mapZoom}
+            zoom={normalizedHeatmap.mapZoom}
             scrollWheelZoom
             style={{ height: '100%', width: '100%' }}
           >
@@ -198,7 +208,7 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
 
             {mapPoints.map((point) => {
               const pointColor = getPointColor(point.intensity)
-              const haloRadius = getHaloRadius(point.complaintCount, complaintHeatmap.maxZoneComplaints)
+              const haloRadius = getHaloRadius(point.complaintCount, normalizedHeatmap.maxZoneComplaints)
 
               return (
                 <Fragment key={point.zoneId}>
@@ -274,7 +284,7 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
           >
             <p style={{ margin: 0, color: '#15803d', fontSize: '0.74rem', fontWeight: 600 }}>Buildings</p>
             <p style={{ margin: '2px 0 0', color: '#14532d', fontSize: '1.25rem', fontWeight: 800 }}>
-              {complaintHeatmap.buildings.length}
+              {normalizedHeatmap.buildings.length}
             </p>
           </div>
           <div
@@ -324,7 +334,7 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
               </tr>
             </thead>
             <tbody>
-              {complaintHeatmap.buildings.flatMap((building) =>
+              {normalizedHeatmap.buildings.flatMap((building) =>
                 building.floors.flatMap((floor) =>
                   floor.zones.map((zone) => (
                     <tr key={zone.zoneId} style={{ borderTop: '1px solid #f1f5f9', background: zone.complaintCount > 0 ? '#ffffff' : '#fcfcfd' }}>

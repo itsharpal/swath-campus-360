@@ -22,7 +22,7 @@ interface Complaint {
 interface Props {
   stats: Stats
   recentComplaints: Complaint[]
-  complaintHeatmap: ComplaintHeatmap
+  complaintHeatmap?: ComplaintHeatmap
 }
 
 const statusColor: Record<string, string> = {
@@ -32,7 +32,7 @@ const statusColor: Record<string, string> = {
   closed: 'bg-gray-100 text-gray-600 border border-gray-200',
 }
 
-export default function AdminDashboard({ stats, recentComplaints }: Props) {
+export default function AdminDashboard({ stats, recentComplaints, complaintHeatmap }: Props) {
   const [range, setRange] = useState<'all' | 'today' | 'weekly' | 'monthly' | 'yearly'>('all')
   const [fromDate, setFromDate] = useState<string>('')
   const [toDate, setToDate] = useState<string>('')

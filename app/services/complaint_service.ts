@@ -24,6 +24,10 @@ export default class ComplaintService {
       query.where('reported_by', filters.userId)
     }
 
+    if (Array.isArray(filters.statuses) && filters.statuses.length > 0) {
+      query.whereIn('status', filters.statuses)
+    }
+
     const complaints = await query.orderBy('created_at', 'desc')
 
     if (complaints.length === 0) {
@@ -118,11 +122,17 @@ export default class ComplaintService {
       .where('user_id', userId)
       .first()
 
-    if (!existingVote) {
+    let hasUpvoted = false
+
+    if (existingVote) {
+      await existingVote.delete()
+      hasUpvoted = false
+    } else {
       await ComplaintVote.create({
         complaintId,
         userId,
       })
+      hasUpvoted = true
     }
 
     const voteCountRow = await db
@@ -133,26 +143,21 @@ export default class ComplaintService {
 
     return {
       upvoteCount: Number(voteCountRow?.total ?? 0),
-      hasUpvoted: true,
+      hasUpvoted,
     }
   }
 
   /**
    * Create complaint
    */
-  async create(data: any, userId: number | null) {
+  async create(data: any, userId: number) {
     const zone = await Zone.findOrFail(data.zoneId)
     let complaintPriority = 'medium'
 
-    if (userId && !data.isAnonymous) {
-      const reporter = await User.query()
-        .where('id', userId)
-        .preload('role')
-        .first()
+    const reporter = await User.query().where('id', userId).preload('role').first()
 
-      if (reporter?.role?.name?.toLowerCase() === 'teacher') {
-        complaintPriority = 'high'
-      }
+    if (reporter?.role?.name?.toLowerCase() === 'teacher') {
+      complaintPriority = 'high'
     }
 
     const complaint = await Complaint.create({
@@ -162,8 +167,8 @@ export default class ComplaintService {
       categoryId: data.categoryId,
       description: data.description,
       photoUrl: data.photoUrl,
-      isAnonymous: data.isAnonymous,
-      reportedBy: data.isAnonymous ? null : userId,
+      isAnonymous: false,
+      reportedBy: userId,
       priority: complaintPriority,
       status: 'open',
     })

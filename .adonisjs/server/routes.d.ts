@@ -12,6 +12,7 @@ export type ScannedRoutes = {
     'auth.verify_email': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.logout': { paramsTuple?: []; params?: {} }
     'profile.show': { paramsTuple?: []; params?: {} }
+    'profile.update': { paramsTuple?: []; params?: {} }
     'dashboard.admin': { paramsTuple?: []; params?: {} }
     'dashboard.supervisor': { paramsTuple?: []; params?: {} }
     'admin.users.index': { paramsTuple?: []; params?: {} }
@@ -165,6 +166,7 @@ export type ScannedRoutes = {
     'zones.store': { paramsTuple: [ParamValue]; params: {'floorId': ParamValue} }
   }
   PUT: {
+    'profile.update': { paramsTuple?: []; params?: {} }
     'admin.users.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.mark_in_progress': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'complaints.resolve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

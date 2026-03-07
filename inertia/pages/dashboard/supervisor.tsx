@@ -166,7 +166,7 @@ export default function SupervisorDashboard({ stats, recentJobs, complaintHeatma
         <CampusHeatmap complaintHeatmap={complaintHeatmap} />
 
         {/* Recent Jobs Table */}
-        <div style={{
+        {/* <div style={{
           background: '#ffffff', borderRadius: '16px',
           boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
           border: '1px solid rgba(22,163,74,0.1)', overflow: 'hidden',
@@ -275,7 +275,7 @@ export default function SupervisorDashboard({ stats, recentJobs, complaintHeatma
               </div>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
 
       <style>{`

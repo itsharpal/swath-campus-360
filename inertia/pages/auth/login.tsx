@@ -10,31 +10,37 @@ export default function Login() {
   const flashError = page.props.flash?.error as string | undefined
   const flashSuccess = page.props.flash?.success as string | undefined
   const verificationLink = page.props.flash?.verificationLink as string | undefined
+  const showVerificationNotice =
+    !!flashSuccess && flashSuccess.toLowerCase().includes('verify your email')
 
   useEffect(() => {
     if (flashError) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Login Failed',
-        text: flashError,
-        confirmButtonColor: '#16a34a',
-        background: '#f0fdf4',
-        color: '#14532d',
-        iconColor: '#dc2626',
-      })
+      if (typeof Swal !== 'undefined' && typeof Swal.fire === 'function') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: flashError,
+          confirmButtonColor: '#16a34a',
+          background: '#f0fdf4',
+          color: '#14532d',
+          iconColor: '#dc2626',
+        })
+      }
     }
     if (flashSuccess) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: flashSuccess,
-        confirmButtonColor: '#16a34a',
-        background: '#f0fdf4',
-        color: '#14532d',
-        iconColor: '#16a34a',
-      })
+      if (typeof Swal !== 'undefined' && typeof Swal.fire === 'function') {
+        Swal.fire({
+          icon: 'success',
+          title: showVerificationNotice ? 'Check Your Email' : 'Success',
+          text: flashSuccess,
+          confirmButtonColor: '#16a34a',
+          background: '#f0fdf4',
+          color: '#14532d',
+          iconColor: '#16a34a',
+        })
+      }
     }
-  }, [flashError, flashSuccess])
+  }, [flashError, flashSuccess, showVerificationNotice])
 
   return (
     <>
@@ -231,6 +237,20 @@ export default function Login() {
           gap: 4px;
         }
 
+        .sc-verify-banner {
+          background: #ecfdf5;
+          border: 1px solid #bbf7d0;
+          color: #166534;
+          border-radius: 10px;
+          padding: 10px 12px;
+          font-size: 12.8px;
+          line-height: 1.45;
+          margin-bottom: 14px;
+          display: flex;
+          gap: 8px;
+          align-items: flex-start;
+        }
+
         .sc-verify-link {
           display: inline-flex;
           align-items: center;
@@ -297,6 +317,19 @@ export default function Login() {
             Welcome <span>Back</span>
           </h1>
           <p className="sc-subtitle">Sign in to your campus account to continue</p>
+
+          {showVerificationNotice && (
+            <div className="sc-verify-banner">
+              <svg
+                viewBox="0 0 24 24"
+                style={{ width: 15, height: 15, stroke: 'currentColor', fill: 'none', strokeWidth: 2, flexShrink: 0, marginTop: 1 }}
+              >
+                <path d="M12 8h.01M11 12h1v4h1" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="12" cy="12" r="10" />
+              </svg>
+              <span>{flashSuccess}</span>
+            </div>
+          )}
 
           <Form route="auth.login">
             {({ errors }) => (
