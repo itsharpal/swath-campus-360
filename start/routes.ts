@@ -50,7 +50,7 @@ router.get('/profile', [ProfileController, 'show']).use(middleware.auth()).as('p
 router.put('/profile', [ProfileController, 'update']).use(middleware.auth()).as('profile.update')
 
 // Dashboards
-router.get('/admin/dashboard', [DashboardController, 'admin']).use(middleware.auth())
+router.get('/admin/dashboard', [DashboardController, 'admin']).use([middleware.auth(), middleware.admin()])
 router.get('/supervisor/dashboard', [DashboardController, 'supervisor']).use(middleware.auth())
 
 router
@@ -70,7 +70,7 @@ router
     router.delete('/users/:id', [AdminUsersController, 'destroy']).as('admin.users.destroy')
   })
   .prefix('/admin')
-  .middleware(middleware.auth())
+  .middleware([middleware.auth(), middleware.admin()])
 
 // Complaints
 router.get('/complaints', [ComplaintsController, 'index'])
@@ -107,17 +107,29 @@ router.put('/job-cards/:id/start', [JobCardsController, 'start']).use(middleware
 router.put('/job-cards/:id/complete', [JobCardsController, 'complete']).use(middleware.auth())
 
 // Analytics
-router.get('/analytics/buildings', [AnalyticsController, 'buildings']).use(middleware.auth())
+router
+  .get('/analytics/buildings', [AnalyticsController, 'buildings'])
+  .use([middleware.auth(), middleware.admin()])
 
-router.get('/analytics/supervisors', [AnalyticsController, 'supervisors']).use(middleware.auth())
+router
+  .get('/analytics/supervisors', [AnalyticsController, 'supervisors'])
+  .use([middleware.auth(), middleware.admin()])
 
-router.get('/analytics/categories', [AnalyticsController, 'categories']).use(middleware.auth())
+router
+  .get('/analytics/categories', [AnalyticsController, 'categories'])
+  .use([middleware.auth(), middleware.admin()])
 
-router.get('/analytics/heatmap', [AnalyticsController, 'heatmap']).use(middleware.auth())
+router
+  .get('/analytics/heatmap', [AnalyticsController, 'heatmap'])
+  .use([middleware.auth(), middleware.admin()])
 
-router.get('/analytics/trends', [AnalyticsController, 'trends']).use(middleware.auth())
+router
+  .get('/analytics/trends', [AnalyticsController, 'trends'])
+  .use([middleware.auth(), middleware.admin()])
 
-router.get('/analytics/peak-hours', [AnalyticsController, 'peakHours']).use(middleware.auth())
+router
+  .get('/analytics/peak-hours', [AnalyticsController, 'peakHours'])
+  .use([middleware.auth(), middleware.admin()])
 
 // Buildings / Floors / Zones
 router.group(() => {
@@ -154,5 +166,4 @@ router.group(() => {
   router.delete('/zones/:id', [ZonesController, 'destroy']).as('zones.destroy')
   router.get('/zones/:id/qr', [ZonesController, 'generateQr']).as('zones.generate_qr')
   router.get('/zones/by-qr/:qr', [ZonesController, 'resolveByQr']).as('zones.resolve_by_qr')
-})
-//.use(middleware.auth())
+}).use([middleware.auth(), middleware.admin()])

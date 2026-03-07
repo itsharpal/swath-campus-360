@@ -8,6 +8,27 @@ export default function Layout({ children }: { children: ReactElement<Data.Share
   const roleId = Number((children.props.user as any)?.roleId ?? 0)
   const isAdmin = roleId === 1
   const canSeeSupervisorDashboard = roleId !== 1 && roleId !== 4 && roleId !== 5
+  const currentZoneId = Number((children.props as any)?.zone?.id ?? 0)
+
+  async function handleAdminGenerateZoneQr() {
+    if (!currentZoneId) return
+
+    try {
+      const res = await fetch(`/zones/${currentZoneId}/qr`, { credentials: 'same-origin' })
+      if (!res.ok) return
+
+      const json = await res.json()
+      const qr = json?.qr
+      if (!qr) return
+
+      const targetUrl = `${window.location.origin}/zones/by-qr/${encodeURIComponent(qr)}`
+      const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(targetUrl)}`
+
+      window.open(qrImg, '_blank', 'noopener,noreferrer')
+    } catch {
+      // Keep navbar action fail-safe without breaking page rendering.
+    }
+  }
 
   useEffect(() => {
     toast.dismiss()
@@ -91,6 +112,78 @@ export default function Layout({ children }: { children: ReactElement<Data.Share
         .sc-nav-link:hover {
           background: #f0fdf4;
           color: #15803d;
+        }
+
+        .sc-nav-button {
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          font-family: 'DM Sans', sans-serif;
+        }
+
+        .sc-admin-menu {
+          position: relative;
+        }
+
+        .sc-admin-trigger {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+        }
+
+        .sc-admin-caret {
+          font-size: 10px;
+          color: #64748b;
+        }
+
+        .sc-admin-popover {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          min-width: 240px;
+          background: #ffffff;
+          border: 1px solid #d1fae5;
+          border-radius: 12px;
+          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+          padding: 8px;
+          display: none;
+          z-index: 60;
+        }
+
+        .sc-admin-menu:hover .sc-admin-popover {
+          display: block;
+        }
+
+        .sc-admin-section {
+          padding: 5px 8px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #94a3b8;
+        }
+
+        .sc-admin-item {
+          display: block;
+          padding: 8px 10px;
+          border-radius: 8px;
+          color: #334155;
+          text-decoration: none;
+          font-size: 12.5px;
+          font-weight: 500;
+          white-space: nowrap;
+          transition: background 0.15s, color 0.15s;
+        }
+
+        .sc-admin-item:hover {
+          background: #f0fdf4;
+          color: #15803d;
+        }
+
+        .sc-admin-divider {
+          height: 1px;
+          margin: 6px 0;
+          background: #ecfeff;
         }
 
         /* User initials badge */
@@ -234,7 +327,42 @@ export default function Layout({ children }: { children: ReactElement<Data.Share
                   <Link route="complaints.my" className="sc-nav-link">My Complaints</Link>
                 )}
                 {isAdmin && (
-                  <Link href="/admin/dashboard" className="sc-nav-link">Admin Dashboard</Link>
+                  <div className="sc-admin-menu">
+                    <span className="sc-nav-link sc-admin-trigger">
+                      Admin Tools <span className="sc-admin-caret">▼</span>
+                    </span>
+                    <div className="sc-admin-popover">
+                      <div className="sc-admin-section">Overview</div>
+                      <Link href="/admin/dashboard" className="sc-admin-item">Admin Dashboard</Link>
+                      <Link href="/admin/users" className="sc-admin-item">Admin Users</Link>
+
+                      <div className="sc-admin-divider" />
+                      <div className="sc-admin-section">Buildings</div>
+                      <Link href="/buildings" className="sc-admin-item">Manage Buildings</Link>
+                      <Link href="/buildings/create" className="sc-admin-item">Create Building</Link>
+
+                      <div className="sc-admin-divider" />
+                      <div className="sc-admin-section">Analytics</div>
+                      <Link href="/analytics/buildings" className="sc-admin-item">Buildings Analytics</Link>
+                      <Link href="/analytics/supervisors" className="sc-admin-item">Supervisor Analytics</Link>
+                      <Link href="/analytics/categories" className="sc-admin-item">Category Analytics</Link>
+                      <Link href="/analytics/heatmap" className="sc-admin-item">Heatmap Analytics</Link>
+                      <Link href="/analytics/trends" className="sc-admin-item">Trends Analytics</Link>
+                      <Link href="/analytics/peak-hours" className="sc-admin-item">Peak Hours Analytics</Link>
+                    </div>
+                  </div>
+                )}
+                {isAdmin && currentZoneId > 0 && (
+                  <>
+                    <Link href={`/zones/${currentZoneId}/edit`} className="sc-nav-link">Edit Zone</Link>
+                    <button
+                      type="button"
+                      className="sc-nav-link sc-nav-button"
+                      onClick={handleAdminGenerateZoneQr}
+                    >
+                      Generate QR
+                    </button>
+                  </>
                 )}
                 {canSeeSupervisorDashboard && (
                   <Link href="/supervisor/dashboard" className="sc-nav-link">Supervisor Dashboard</Link>

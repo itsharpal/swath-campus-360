@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet'
+import { CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet'
 import type { LatLngBoundsExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -78,21 +78,72 @@ function FitMapBounds({ points }: { points: HeatmapMapPoint[] }) {
   return null
 }
 
-function getPointColor(intensity: number) {
-  if (intensity <= 0) return '#94a3b8'
-  if (intensity >= 0.8) return '#ef4444'
-  if (intensity >= 0.55) return '#f59e0b'
-  if (intensity >= 0.3) return '#3b82f6'
-  return '#10b981'
+const HEAT_COLOR_STOPS = [
+  { stop: 0, rgb: [49, 130, 189] as const },
+  { stop: 0.25, rgb: [65, 182, 196] as const },
+  { stop: 0.5, rgb: [161, 218, 180] as const },
+  { stop: 0.7, rgb: [255, 255, 191] as const },
+  { stop: 0.85, rgb: [253, 174, 97] as const },
+  { stop: 1, rgb: [215, 25, 28] as const },
+]
+
+function clamp01(value: number): number {
+  if (value < 0) return 0
+  if (value > 1) return 1
+  return value
 }
 
-function getHaloRadius(complaintCount: number, maxZoneComplaints: number) {
-  if (maxZoneComplaints <= 0 || complaintCount <= 0) {
+function interpolateChannel(start: number, end: number, t: number): number {
+  return Math.round(start + (end - start) * t)
+}
+
+function getPointColor(intensity: number): string {
+  const normalized = clamp01(intensity)
+
+  for (let index = 0; index < HEAT_COLOR_STOPS.length - 1; index++) {
+    const left = HEAT_COLOR_STOPS[index]
+    const right = HEAT_COLOR_STOPS[index + 1]
+
+    if (normalized >= left.stop && normalized <= right.stop) {
+      const segmentRange = right.stop - left.stop || 1
+      const segmentT = (normalized - left.stop) / segmentRange
+      const red = interpolateChannel(left.rgb[0], right.rgb[0], segmentT)
+      const green = interpolateChannel(left.rgb[1], right.rgb[1], segmentT)
+      const blue = interpolateChannel(left.rgb[2], right.rgb[2], segmentT)
+
+      return `rgb(${red}, ${green}, ${blue})`
+    }
+  }
+
+  const fallback = HEAT_COLOR_STOPS[HEAT_COLOR_STOPS.length - 1].rgb
+  return `rgb(${fallback[0]}, ${fallback[1]}, ${fallback[2]})`
+}
+
+function getPointWeight(
+  point: Pick<HeatmapMapPoint, 'complaintCount' | 'intensity'>,
+  maxZoneComplaints: number
+) {
+  if (point.complaintCount <= 0) {
     return 0
   }
 
-  const ratio = complaintCount / maxZoneComplaints
-  return 45 + ratio * 120
+  if (maxZoneComplaints > 0) {
+    return clamp01(point.complaintCount / maxZoneComplaints)
+  }
+
+  return clamp01(point.intensity)
+}
+
+function getCoreRadius(pointWeight: number) {
+  return 3 + pointWeight * 4
+}
+
+function getHeatPixelRadius(pointWeight: number) {
+  if (pointWeight <= 0) {
+    return 0
+  }
+
+  return 8 + Math.sqrt(pointWeight) * 16
 }
 
 export default function CampusHeatmap({ complaintHeatmap }: Props) {
@@ -115,6 +166,14 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
       return sum + building.floors.reduce((floorSum, floor) => floorSum + floor.zones.length, 0)
     }, 0)
   }, [normalizedHeatmap.buildings])
+
+  const sortedMapPoints = useMemo(() => {
+    return [...mapPoints].sort((a, b) => {
+      const weightA = getPointWeight(a, normalizedHeatmap.maxZoneComplaints)
+      const weightB = getPointWeight(b, normalizedHeatmap.maxZoneComplaints)
+      return weightA - weightB
+    })
+  }, [mapPoints, normalizedHeatmap.maxZoneComplaints])
 
   return (
     <section
@@ -191,7 +250,7 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
         </div>
       </div>
 
-      <div style={{ height: '380px', width: '100%' }}>
+      <div style={{ height: '380px', width: '100%', position: 'relative' }}>
         {isClient ? (
           <MapContainer
             center={center}
@@ -206,32 +265,57 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
 
             {mapPoints.length > 0 && <FitMapBounds points={mapPoints} />}
 
-            {mapPoints.map((point) => {
-              const pointColor = getPointColor(point.intensity)
-              const haloRadius = getHaloRadius(point.complaintCount, normalizedHeatmap.maxZoneComplaints)
+            {sortedMapPoints.map((point) => {
+              const pointWeight = getPointWeight(point, normalizedHeatmap.maxZoneComplaints)
+              const pointColor = pointWeight > 0 ? getPointColor(pointWeight) : '#94a3b8'
+              const heatRadius = getHeatPixelRadius(pointWeight)
+              const middleRadius = heatRadius * 1.55
+              const outerRadius = heatRadius * 2.05
 
               return (
                 <Fragment key={point.zoneId}>
-                  {haloRadius > 0 && (
-                    <Circle
-                      center={[point.lat, point.lng]}
-                      radius={haloRadius}
-                      pathOptions={{
-                        color: pointColor,
-                        fillColor: pointColor,
-                        fillOpacity: 0.35,
-                        weight: 0,
-                      }}
-                    />
+                  {pointWeight > 0 && (
+                    <>
+                      <CircleMarker
+                        center={[point.lat, point.lng]}
+                        radius={outerRadius}
+                        pathOptions={{
+                          color: pointColor,
+                          fillColor: pointColor,
+                          fillOpacity: 0.05,
+                          weight: 0,
+                        }}
+                      />
+                      <CircleMarker
+                        center={[point.lat, point.lng]}
+                        radius={middleRadius}
+                        pathOptions={{
+                          color: pointColor,
+                          fillColor: pointColor,
+                          fillOpacity: 0.1,
+                          weight: 0,
+                        }}
+                      />
+                      <CircleMarker
+                        center={[point.lat, point.lng]}
+                        radius={heatRadius}
+                        pathOptions={{
+                          color: pointColor,
+                          fillColor: pointColor,
+                          fillOpacity: 0.18,
+                          weight: 0,
+                        }}
+                      />
+                    </>
                   )}
                   <CircleMarker
                     center={[point.lat, point.lng]}
-                    radius={point.complaintCount > 0 ? 6 + point.intensity * 10 : 4}
+                    radius={pointWeight > 0 ? getCoreRadius(pointWeight) : 4}
                     pathOptions={{
                       color: '#ffffff',
                       weight: 1,
                       fillColor: pointColor,
-                      fillOpacity: 0.95,
+                      fillOpacity: pointWeight > 0 ? 0.96 : 0.72,
                     }}
                   >
                     <Tooltip direction="top" offset={[0, -6]}>
@@ -263,6 +347,45 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
             Loading campus map...
           </div>
         )}
+
+        <div
+          style={{
+            position: 'absolute',
+            right: '12px',
+            bottom: '12px',
+            background: 'rgba(255,255,255,0.92)',
+            border: '1px solid #e2e8f0',
+            borderRadius: '10px',
+            boxShadow: '0 6px 20px rgba(15,23,42,0.12)',
+            padding: '8px 10px',
+            pointerEvents: 'none',
+          }}
+        >
+          <p style={{ margin: '0 0 6px', fontSize: '0.68rem', letterSpacing: '0.05em', color: '#475569' }}>
+            HEAT INTENSITY
+          </p>
+          <div
+            style={{
+              width: '150px',
+              height: '8px',
+              borderRadius: '999px',
+              background:
+                'linear-gradient(90deg, rgb(49,130,189) 0%, rgb(65,182,196) 20%, rgb(161,218,180) 40%, rgb(255,255,191) 60%, rgb(253,174,97) 80%, rgb(215,25,28) 100%)',
+            }}
+          />
+          <div
+            style={{
+              marginTop: '4px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: '0.65rem',
+              color: '#64748b',
+            }}
+          >
+            <span>Low</span>
+            <span>High</span>
+          </div>
+        </div>
       </div>
 
       <div style={{ padding: '1.25rem 1.5rem 1.5rem' }}>
@@ -353,7 +476,7 @@ export default function CampusHeatmap({ complaintHeatmap }: Props) {
             </tbody>
           </table>
 
-          {complaintHeatmap.buildings.length === 0 && (
+          {normalizedHeatmap.buildings.length === 0 && (
             <div style={{ textAlign: 'center', padding: '1.6rem', fontSize: '0.86rem', color: '#94a3b8' }}>
               No zone summary data available.
             </div>
