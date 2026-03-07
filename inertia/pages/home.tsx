@@ -1,4 +1,12 @@
-export default function Home() {
+interface HomeProps {
+  stats: {
+    totalBuildings: number
+    totalUsers: number
+    uptime: number
+  }
+}
+
+export default function Home({ stats }: HomeProps) {
   return (
     <>
       <style>{`
@@ -132,18 +140,13 @@ export default function Home() {
         .sc-card {
           background: white; border-radius: 16px; padding: 28px 24px;
           box-shadow: 0 4px 20px rgba(22,163,74,0.08);
-          text-decoration: none; display: block;
+          display: block;
           position: relative; overflow: hidden;
-          transition: transform 0.2s, box-shadow 0.2s;
         }
         .sc-card::before {
           content: ''; position: absolute; top: 0; left: 0; right: 0;
           height: 2px; background: linear-gradient(90deg, #16a34a, #4ade80);
-          transform: scaleX(0); transform-origin: left;
-          transition: transform 0.3s ease;
         }
-        .sc-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(22,163,74,0.16); }
-        .sc-card:hover::before { transform: scaleX(1); }
 
         .sc-card-icon {
           width: 42px; height: 42px; border-radius: 12px;
@@ -158,9 +161,8 @@ export default function Home() {
         .sc-card-arrow {
           display: inline-flex; align-items: center; gap: 4px;
           font-size: 12px; color: #16a34a; font-weight: 600;
-          margin-top: 14px; transition: gap 0.2s;
+          margin-top: 14px;
         }
-        .sc-card:hover .sc-card-arrow { gap: 8px; }
 
         .sc-footer { text-align: center; font-size: 11px; color: #9ca3af; margin-top: 48px; letter-spacing: 0.08em; text-transform: uppercase; }
 
@@ -204,8 +206,8 @@ export default function Home() {
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
               </a>
-              <a href="/profile" className="sc-btn-ghost">
-                My Profile
+              <a href="/complaints" className="sc-btn-ghost">
+                Public Complaints
               </a>
             </div>
           </div>
@@ -217,7 +219,7 @@ export default function Home() {
                 <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
               </div>
               <div className="sc-stat-text">
-                <div className="sc-stat-num">24</div>
+                <div className="sc-stat-num">{stats.totalBuildings}</div>
                 <div className="sc-stat-label">Total Buildings</div>
               </div>
             </div>
@@ -226,7 +228,7 @@ export default function Home() {
                 <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
               </div>
               <div className="sc-stat-text">
-                <div className="sc-stat-num">142</div>
+                <div className="sc-stat-num">{stats.totalUsers}</div>
                 <div className="sc-stat-label">Campus Users</div>
               </div>
             </div>
@@ -235,7 +237,7 @@ export default function Home() {
                 <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               </div>
               <div className="sc-stat-text">
-                <div className="sc-stat-num">98%</div>
+                <div className="sc-stat-num">{stats.uptime}%</div>
                 <div className="sc-stat-label">Uptime Today</div>
               </div>
             </div>
@@ -243,47 +245,47 @@ export default function Home() {
 
           {/* Link Cards */}
           <div className="sc-cards">
-            <a href="https://insiders.adonisjs.com/docs/v7-alpha/introduction" target="_blank" className="sc-card">
+            <div className="sc-card">
               <div className="sc-card-icon">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               </div>
-              <h3>Official Docs</h3>
-              <p>Comprehensive reference for building with AdonisJS v7</p>
+              <h3>Report Issues</h3>
+              <p>Submit and track campus complaints and maintenance requests</p>
               <div className="sc-card-arrow">
-                Read docs
+                View complaints
                 <svg style={{ width: 12, height: 12, stroke: 'currentColor', fill: 'none', strokeWidth: 2.5 }} viewBox="0 0 24 24">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
               </div>
-            </a>
+            </div>
 
-            <a href="https://adocasts.com/" target="_blank" className="sc-card">
+            <div className="sc-card">
               <div className="sc-card-icon">
-                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
               </div>
-              <h3>Adocasts</h3>
-              <p>Guided video tutorials for everyday AdonisJS development</p>
+              <h3>Job Cards</h3>
+              <p>Manage and monitor maintenance job cards and their progress</p>
               <div className="sc-card-arrow">
-                Watch videos
+                View job cards
                 <svg style={{ width: 12, height: 12, stroke: 'currentColor', fill: 'none', strokeWidth: 2.5 }} viewBox="0 0 24 24">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
               </div>
-            </a>
+            </div>
 
-            <a href="https://discord.gg/vDcEjq6" target="_blank" className="sc-card">
+            <div className="sc-card">
               <div className="sc-card-icon">
-                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
               </div>
-              <h3>Discord</h3>
-              <p>Connect with developers building with AdonisJS every day</p>
+              <h3>Analytics</h3>
+              <p>View detailed reports and insights on campus operations</p>
               <div className="sc-card-arrow">
-                Join community
+                View analytics
                 <svg style={{ width: 12, height: 12, stroke: 'currentColor', fill: 'none', strokeWidth: 2.5 }} viewBox="0 0 24 24">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
               </div>
-            </a>
+            </div>
           </div>
 
           <div className="sc-footer">✦ Swachh Campus • Dashboard • 2026</div>

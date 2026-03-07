@@ -79,6 +79,57 @@ export default function ShowBuilding({ building }: any) {
     })
   }
 
+  function handleCreateZone() {
+    if (!floors.length) {
+      const Swal = (window as any).Swal
+      if (!Swal) {
+        alert('Please create a floor first before adding a zone.')
+        return
+      }
+      Swal.fire({
+        ...swalBase,
+        icon: 'info',
+        iconColor: '#0d9488',
+        title: 'Add a Floor First',
+        html: '<span style="color:#4a7c59">Please create at least one floor before adding a zone.</span>',
+        confirmButtonColor: '#16a34a',
+        confirmButtonText: 'Create Floor',
+      }).then((r: any) => {
+        if (r.isConfirmed) router.visit(`/buildings/${building.id}/floors/create`)
+      })
+      return
+    }
+
+    router.visit(`/floors/${floors[0].id}/zones/create`)
+  }
+
+  function showZoneActions(zone: any) {
+    const Swal = (window as any).Swal
+    if (!Swal) {
+      if (confirm(`Generate QR for ${zone.name || `Zone ${zone.id}`}?`)) {
+        router.visit(`/zones/${zone.id}/qr`)
+      }
+      return
+    }
+
+    Swal.fire({
+      ...swalBase,
+      icon: 'question',
+      iconColor: '#0d9488',
+      title: zone.name || `Zone ${zone.id}`,
+      html: '<span style="color:#4a7c59">Choose an action for this zone.</span>',
+      showCancelButton: true,
+      confirmButtonText: 'Generate QR',
+      cancelButtonText: 'Close',
+      confirmButtonColor: '#16a34a',
+      cancelButtonColor: '#6b7280',
+      showClass: { popup: 'cb-swal-in' },
+    }).then((r: any) => {
+      if (!r.isConfirmed) return
+      router.visit(`/zones/${zone.id}/qr`)
+    })
+  }
+
   const floors: any[]  = building.floors  ?? []
   const zones:  any[]  = building.zones   ?? []
 
@@ -165,7 +216,13 @@ export default function ShowBuilding({ building }: any) {
         .sh-section-head{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid rgba(22,163,74,.08)}
         .sh-section-title{display:flex;align-items:center;gap:9px;font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text);letter-spacing:-.02em}
         .sh-section-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center}
+        .sh-section-actions{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}
         .sh-count-badge{font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:600;background:var(--green-pale);color:var(--green-deep);border:1px solid rgba(22,163,74,.2);border-radius:100px;padding:2px 10px}
+        .sh-mini-btn{display:inline-flex;align-items:center;gap:6px;font-family:'Outfit',sans-serif;font-size:.75rem;font-weight:600;border:1.5px solid;border-radius:9px;padding:.4rem .75rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+        .sh-mini-btn-floor{color:var(--green-deep);border-color:rgba(22,163,74,.28);background:var(--green-pale)}
+        .sh-mini-btn-floor:hover{background:#bbf7d0;border-color:var(--green);transform:translateY(-1px)}
+        .sh-mini-btn-zone{color:var(--teal);border-color:rgba(13,148,136,.3);background:#f0fdfa}
+        .sh-mini-btn-zone:hover{background:#ccfbf1;border-color:var(--teal);transform:translateY(-1px)}
 
         /* floors list */
         .sh-floors-list{padding:.6rem}
@@ -196,7 +253,7 @@ export default function ShowBuilding({ building }: any) {
           display:flex;align-items:center;gap:.6rem;
           background:var(--surface2);border:1.5px solid var(--border);
           border-radius:11px;padding:.7rem .9rem;
-          transition:all .2s;cursor:default
+          transition:all .2s;cursor:pointer
         }
         .sh-zone-chip:hover{border-color:rgba(22,163,74,.3);background:var(--green-pale);transform:translateY(-1px)}
         .sh-zone-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);flex-shrink:0;box-shadow:0 0 5px rgba(13,148,136,.4)}
@@ -310,7 +367,16 @@ export default function ShowBuilding({ building }: any) {
                   </div>
                   Floors
                 </div>
-                <span className="sh-count-badge">{floors.length} total</span>
+                <div className="sh-section-actions">
+                  <button
+                    className="sh-mini-btn sh-mini-btn-floor"
+                    onClick={() => router.visit(`/buildings/${building.id}/floors/create`)}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Create Floor
+                  </button>
+                  <span className="sh-count-badge">{floors.length} total</span>
+                </div>
               </div>
 
               {floors.length === 0 ? (
@@ -345,29 +411,41 @@ export default function ShowBuilding({ building }: any) {
           </div>
 
           {/* Zones */}
-          {zones.length > 0 && (
-            <div className="sh-section">
-              <div className="sh-section-card">
-                <div className="sh-section-head">
-                  <div className="sh-section-title">
-                    <div className="sh-section-icon" style={{background:'#ccfbf1',color:'var(--teal)'}}>
-                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    </div>
-                    Zones
+          <div className="sh-section">
+            <div className="sh-section-card">
+              <div className="sh-section-head">
+                <div className="sh-section-title">
+                  <div className="sh-section-icon" style={{background:'#ccfbf1',color:'var(--teal)'}}>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                   </div>
+                  Zones
+                </div>
+                <div className="sh-section-actions">
+                  <button className="sh-mini-btn sh-mini-btn-zone" onClick={handleCreateZone}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Create Zone
+                  </button>
                   <span className="sh-count-badge">{zones.length} zones</span>
                 </div>
+              </div>
+
+              {zones.length === 0 ? (
+                <div className="sh-empty">
+                  <div className="sh-empty-icon">🧭</div>
+                  <div className="sh-empty-text">No zones created yet.</div>
+                </div>
+              ) : (
                 <div className="sh-zones-grid">
                   {zones.map((zone: any) => (
-                    <div key={zone.id} className="sh-zone-chip">
+                    <div key={zone.id} className="sh-zone-chip" onClick={() => showZoneActions(zone)}>
                       <span className="sh-zone-dot"/>
                       <span className="sh-zone-name">{zone.name || `Zone ${zone.id}`}</span>
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
-          )}
+          </div>
 
           <div className="sh-infobar">
             <span>🌿 SWACHH CAMPUS</span><span className="sh-dot"/>

@@ -96,12 +96,20 @@ export default class ZonesController {
     return response.redirect(`/floors/${zone.floorId}/zones`)
   }
 
-  async generateQr({ params }: HttpContext) {
+  async generateQr({ params, inertia, request }: HttpContext) {
     const zoneId = Number(params.id)
 
     const qr = await this.zoneService.generateQr(zoneId)
 
-    return { qr }
+    const zone = await this.zoneService.getZone(zoneId)
+    const origin = new URL(request.completeUrl()).origin
+    const resolveUrl = `${origin}/zones/by-qr/${encodeURIComponent(qr)}`
+
+    return inertia.render('zones/qr', {
+      zone: zone.serialize(),
+      qr,
+      resolveUrl,
+    })
   }
 
   async resolveByQr({ params, response }: HttpContext) {

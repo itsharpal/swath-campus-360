@@ -54,5 +54,6 @@ declare module '@adonisjs/inertia/types' {
     'zones/edit': ExtractProps<(typeof import('../../inertia/pages/zones/edit.tsx'))['default']>
     'zones/index': ExtractProps<(typeof import('../../inertia/pages/zones/index.tsx'))['default']>
     'zones/show': ExtractProps<(typeof import('../../inertia/pages/zones/show.tsx'))['default']>
+    'zones/qr': ExtractProps<(typeof import('../../inertia/pages/zones/qr.tsx'))['default']>
   }
 }
